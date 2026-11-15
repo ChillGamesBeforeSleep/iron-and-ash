@@ -6,7 +6,7 @@ const G={leak:false,lights:[],dev:{god:false,calm:false,biome:'',ts:1,open:false
 res:{crew:5,fuel:110,scrap:8,ammo:15,equip:2,water:75},caps:{},away:0,
 drones:[],shots:[],rocks:[],obstacles:[],parts:[],exp:null,explQ:[],
 t:0,camX:0,camY:0,shake:0,flash:0,throttle:0,target:0,brake:false,keys:{},cameraPilot:null,
-mouse:{sx:0,sy:0,wx:0,wy:0,down:false},gunCool:0,craftCool:0,cell:4,raw:false,viewH:292,zoomTarget:292,zoomManual:false,wheelT:-99,paused:false,
+mouse:{sx:0,sy:0,wx:0,wy:0,down:false},gunCool:0,craftCool:0,cell:4,raw:true,viewH:292,zoomTarget:292,zoomManual:false,wheelT:-99,paused:false,
 tint:[58,46,38],hover:null,stats:{dist:0,kills:0,lost:0,repairs:0},hudSig:'',tel:null,cause:'hit',recruitT:0,offers:null};
 function newTel(){return{dmg:{},fuel:0,fuelIn:{},stopped:0,scrapIn:0,scrapOut:0,ammoUsed:0,ammoMade:0,time:0,kills:0,crewLost:0,crewGained:0}}
 G.tel=newTel();
@@ -19,6 +19,14 @@ city:{name:'DEAD CITY',sub:'Drone nests in the towers. Rich ruins.',sky:[44,44,5
 canyon:{name:'ROCKFALL CANYON',sub:'Loose cliffs. Rocks block the track.',sky:[66,46,34]},
 acid:{name:'ACID RAIN BELT',sub:'Corrodes metal. Puts out fires.',sky:[40,58,42]},
 lava:{name:'LAVA FIELDS',sub:'Embers ignite fuel, wood and ammo.',sky:[90,34,20]},
+};
+/* v3.40: everything buried under the map — read by genWorld (06), the driller's loot (16b) and the Wiki (26) */
+const BURIED={
+chest:{name:'BURIED TREASURE CHEST',r:6,col:[196,150,60],reward:{scrap:3,equip:1,ammo:6},gear:['sniper','gun','grenade','armor'],note:'Pre-collapse cache. Shallow, unguarded.'},
+bunker:{name:'SEALED OLD BUNKER',r:11,col:[110,110,104],reward:{scrap:4,equip:2,ammo:8,fuel:6},gear:['seeker','rpg','sniper','armor'],note:'Mnemos vault. Usually guarded by a buried defense turret that wakes when you get close.'},
+vein:{name:'RICH SCRAP VEIN',r:8,col:[150,96,60],reward:{scrap:6,equip:1},note:'Compressed wreckage. Pure salvage.'},
+fuel:{name:'ANCIENT FUEL POCKET',r:8,col:[168,124,42],reward:{fuel:10,scrap:2},note:'Old storage tank. Safe to tap.'},
+gas:{name:'VOLATILE GAS POCKET',r:12,col:[120,170,90],reward:{fuel:4},note:'Drill in slowly to vent it into fuel. Hit it at speed, on fire, or with a seismic charge and it explodes.'},
 };
 const SITES={
 ruin:{name:'RUIN',work:6,risk:'low',p:.02,stock:8,slots:4,load:{scrap:2.2,equip:.18,fuel:.6}},

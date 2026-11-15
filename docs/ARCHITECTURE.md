@@ -11,6 +11,7 @@ Because all modules share one scope, a `const`/`function` defined in one file is
 | `G` | all run state: `G.train.cars`, `G.world`, `G.res`, `G.vehicles`, `G.crew`, `G.state` (`title/play/leg/over/workshop`) |
 | `MATS`, `M` | material registry and name→index map (`M.STEEL`) |
 | `CARS`, `ROLES` | unit definitions and section abilities |
+| `SITES`, `BURIED`, `BIOMES` | world feature registries (05-state) — the Wiki (`showCodex` in 26-flow) renders them live, so new world content must be added there, not inline |
 | `PX` | loose pixel physics (debris, rubble, liquids) |
 | `window.__G`, `window.__api` | debug handles for the console and tests |
 

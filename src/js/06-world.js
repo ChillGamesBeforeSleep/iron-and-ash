@@ -49,7 +49,7 @@ if(forceB==='none')continue;
 if(forceB||ti>=2&&rng()<.78){
 const bx=Math.round(tile.x0+40+rng()*Math.max(40,tile.w-80)),dep=16+Math.round(rng()*34),by=Math.round(Tt[bx]+dep);
 const roll=rng(),kind=forceB||(roll<.24?'chest':roll<.50?'bunker':roll<.70?'vein':roll<.84?'fuel':'gas');
-const bObj={id:ti+1,tile:ti,x:bx,y:by,dep,kind,looted:false,r:kind==='bunker'?11:kind==='gas'?12:kind==='chest'?6:8,name:kind==='chest'?'BURIED TREASURE CHEST':kind==='bunker'?'SEALED OLD BUNKER':kind==='vein'?'RICH SCRAP VEIN':kind==='gas'?'VOLATILE GAS POCKET':'ANCIENT FUEL POCKET'};
+const bObj={id:ti+1,tile:ti,x:bx,y:by,dep,kind,looted:false,r:BURIED[kind].r,name:BURIED[kind].name};
 world.buried.push(bObj);
 const wantTurret=ms.turret==='yes'||(ms.turret!=='no'&&kind==='bunker'&&rng()<.75);
 if(wantTurret){
@@ -57,7 +57,7 @@ world.subTurrets.push({id:ti+1,tile:ti,x:bx+(rng()<.5?-16:16),y:by-2,hp:55,max:5
 }
 if(kind!=='gas'&&ms.buried!=='gas'&&rng()<.42){
 const gx=clamp(bx+(rng()<.5?-26:26),tile.x0+20,tile.x1-20),gy=Math.round(Tt[gx]+14+rng()*26);
-world.buried.push({id:100+ti,tile:ti,x:gx,y:gy,dep:gy-Math.round(Tt[gx]),kind:'gas',looted:false,r:10+Math.round(rng()*4),name:'VOLATILE GAS POCKET'});
+world.buried.push({id:100+ti,tile:ti,x:gx,y:gy,dep:gy-Math.round(Tt[gx]),kind:'gas',looted:false,r:10+Math.round(rng()*4),name:BURIED.gas.name});
 }
 }
 }

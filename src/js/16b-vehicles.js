@@ -67,7 +67,7 @@ if(bu.looted||Math.hypot(c.cxw-bu.x,c.cyw-bu.y)>bu.r+(bu.kind==='gas'?8:14))cont
 if(bu.kind==='gas'){
 if(c.fires>0||sp>CFG.drillSpeed*.82){igniteGasPocket(bu,'high-speed drill friction');continue}
 bu.looted=true;craterGround(bu.x,bu.y,bu.r,60,0,0,true);
-c.inv=c.inv||[];const n=inventoryAddTo(c.inv,'fuel',4,VEHICLE_PACK);
+c.inv=c.inv||[];const n=inventoryAddTo(c.inv,'fuel',BURIED.gas.reward.fuel,VEHICLE_PACK);
 log(`Carefully vented gas pocket & condensed +${Math.round(n)} fuel! (High speed or [Space] blast ignites gas pockets)`,'good');sfx('loot',.8,bu.x);continue;
 }
 if(bu.kind==='bunker'){
@@ -76,7 +76,7 @@ if(guard&&!guard.awake){guard.awake=true;sfx('bad',.8,guard.x);log('Bunker defen
 }
 bu.looted=true;craterGround(bu.x,bu.y,bu.r+3,130,0,-20,true);
 c.inv=c.inv||[];const got=[];
-const reward=bu.kind==='bunker'?{scrap:4,equip:2,ammo:8,fuel:6,gear:pick(['seeker','rpg','sniper','armor'])}:bu.kind==='chest'?{scrap:3,equip:1,ammo:6,gear:pick(['sniper','gun','grenade','armor'])}:bu.kind==='vein'?{scrap:6,equip:1}:{fuel:10,scrap:2};
+const B=BURIED[bu.kind]||BURIED.fuel,reward={...B.reward};if(B.gear)reward.gear=pick(B.gear);
 if(reward.scrap&&(c.scrap||0)<CFG.airScrapCap){const addS=Math.min(reward.scrap,CFG.airScrapCap-Math.floor(c.scrap||0));c.scrap=(c.scrap||0)+addS;reward.scrap-=addS;if(addS)got.push(`+${addS} onboard scrap`)}
 for(const rk of ['scrap','equip','ammo','fuel'])if(reward[rk]>0){const n=inventoryAddTo(c.inv,rk,reward[rk],VEHICLE_PACK);if(n>0)got.push(`+${Math.round(n)} ${rk}`)}
 if(reward.gear){const n=inventoryAddTo(c.inv,reward.gear,1,VEHICLE_PACK);if(n>0)got.push(`+${ITEMS[reward.gear].name}`)}

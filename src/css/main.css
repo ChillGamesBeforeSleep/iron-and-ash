@@ -275,3 +275,5 @@ body.title #crew,body.station #crew,body.ws #crew{display:none}
 .sb-stat .mini{margin-bottom:4px}
 body.dev #simbar{right:calc(min(390px,100vw) + 12px)}
 @media (max-width:760px){#simbar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 110px);max-height:45vh}}
+.cx-h{font:600 13px var(--mono);color:var(--bone);letter-spacing:.08em;margin:14px 0 8px;text-transform:uppercase}
+.cx-h small{font:10px var(--mono);color:var(--dim);letter-spacing:0;text-transform:none;margin-left:8px}

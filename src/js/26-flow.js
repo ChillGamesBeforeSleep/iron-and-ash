@@ -32,7 +32,7 @@ return out}
 function showCodex(tab){
 tab=tab||'units';const fromPlay=(G.state==='play');if(fromPlay){G.paused=true;G.cxFromPlay=true}
 overlay.hidden=false;panel.className='panel wide codex';
-const tabs=[['units','UNITS & VEHICLES ('+Object.keys(CARS).filter(k=>k!==FORGE_ID).length+')'],['roles','SECTIONS & ROLES ('+Object.keys(ROLES).length+')'],['mats','MATERIALS ('+(MATS.length-1)+')'],['rules','PHYSICS & RULES']];
+const tabs=[['units','UNITS & VEHICLES ('+Object.keys(CARS).filter(k=>k!==FORGE_ID).length+')'],['roles','SECTIONS & ROLES ('+Object.keys(ROLES).length+')'],['mats','MATERIALS ('+(MATS.length-1)+')'],['map','MAP FEATURES ('+(Object.keys(SITES).length+Object.keys(BURIED).length+Object.keys(BIOMES).length)+')'],['rules','PHYSICS & RULES']];
 let body='';
 if(tab==='units'){
 const keys=Object.keys(CARS).filter(k=>k!==FORGE_ID);
@@ -50,6 +50,21 @@ const st=R.stat?(`L0: ${R.stat(0,'wagon')} → L3: ${R.stat(3,'wagon')}`):'';
 const nd=R.need&&R.need.mat?('Needs ≥15% '+R.need.mat.join('/')):'';
 return `<tr><td><b>${k}</b> <small style="color:var(--warn)">[${R.short}]</small></td><td>${R.group||'General'}</td><td>${R.help||''}${st?'<br><span style="color:var(--ok)">'+st+'</span>':''}${R.up?'<br><small>Upgrade: '+R.up+'</small>':''}</td><td>${R.actHelp?'<span style="color:#50ffdc">Click at 100%: '+R.actHelp+'</span><br>':''}${nd}</td></tr>`;
 }).join('')+'</table>';
+}else if(tab==='map'){
+/* v3.40: the world half of the Wiki — every building, buried feature and biome, read live from SITES / BURIED / BIOMES,
+   with a count of what is actually on the current leg */
+const W=G.world||{},onLeg=(arr,f)=>(arr||[]).filter(f).length;
+const loadTxt=o=>Object.entries(o||{}).map(([k,v])=>`${v} ${k}`).join(' · ')||'—';
+body='<h3 class="cx-h">Buildings & sites <small>surface · stop next to one and press [E] to send looters</small></h3><div class="cx-grid">'+Object.entries(SITES).map(([k,D])=>{
+const n=onLeg(W.sites,s=>s.type===k),left=onLeg(W.sites,s=>s.type===k&&(s.stock>0||!D.stock));
+return `<div class="cx-card" data-cxsite="${k}"><header><b>${D.name}</b><small>${D.stock?'RISK '+D.risk.toUpperCase():'SPECIAL'}</small></header><div class="cx-art"></div><div class="cx-meta">${D.stock?`${D.stock} loads · ${D.slots} looters · ${D.work}s per load · ${(D.p*100).toFixed(1)}% accident`:k==='tower'?'Refills the water tanker through the spout':k==='stranded'?'Stop to take survivors aboard':''}</div><div class="cx-tags"><span>per load: ${loadTxt(D.load)}</span>${k==='yard'?'<span>holds a spare EXCAVATOR RIG</span>':''}<span style="color:var(--ok)">this leg: ${n}${n&&D.stock?' ('+left+' not emptied)':''}</span></div></div>`}).join('')+'</div>';
+body+='<h3 class="cx-h">Underground <small>reach these with the TUNNEL DRILLER — launch it from the Excavator Rig\'s DECK</small></h3><table><tr><td>Feature</td><td>Size</td><td>Loot</td><td>Notes</td><td>This leg</td></tr>'+Object.entries(BURIED).map(([k,B])=>{
+const n=onLeg(W.buried,b=>b.kind===k),done=onLeg(W.buried,b=>b.kind===k&&b.looted),hex=rgb(B.col);
+return `<tr><td><i style="display:inline-block;width:10px;height:10px;background:${hex};margin-right:6px;border:1px solid #fff"></i><b>${B.name}</b></td><td>r ${B.r} px</td><td>${loadTxt(B.reward)}${B.gear?' · 1 of '+B.gear.map(g=>ITEMS[g]?ITEMS[g].name:g).join(' / '):''}</td><td>${B.note}</td><td style="color:var(--ok)">${n} (${done} excavated)</td></tr>`}).join('')
++`<tr><td><b>BUNKER DEFENSE TURRET</b></td><td>—</td><td>3 scrap · 1 equip · 4 ammo</td><td>Sleeps beside a bunker. Destroy it with a seismic charge [Space] or ram it with the drill.</td><td style="color:var(--ok)">${onLeg(W.subTurrets,t=>true)} (${onLeg(W.subTurrets,t=>!t.alive)} destroyed)</td></tr></table>`;
+body+='<h3 class="cx-h">Biomes <small>each leg crosses several</small></h3><table><tr><td>Biome</td><td>Sky</td><td>What it does</td><td>This leg</td></tr>'+Object.entries(BIOMES).map(([k,B])=>{
+const n=onLeg(W.tiles,t=>t.biome===k);
+return `<tr><td><b>${B.name}</b></td><td><i style="display:inline-block;width:34px;height:10px;background:${rgb(B.sky)};border:1px solid #fff"></i></td><td>${B.sub}</td><td style="color:var(--ok)">${n?n+' of '+(W.tiles||[]).length+' tiles':'—'}</td></tr>`}).join('')+'</table>';
 }else if(tab==='mats'){
 body='<table><tr><td>Material</td><td>Code RGB / Sym</td><td>HP · Mass · Bounce</td><td>Live Physical Behaviour</td></tr>'+MATS.slice(1).map((m,idx)=>{
 const id=idx+1,hex='#'+m.pal.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
@@ -66,8 +81,8 @@ body=`<table>
 <tr><td>3-Tier Intellect & Veterancy</td><td>Enemy flyers & raiders scale from <b>L1 Basic</b> (Legs 1–2) → <b>L2 Advanced</b> (Legs 3–4, target priority + velocity lead) → <b>L3 Master</b> (Leg 5+, shell evasion + weak-spot sniping). Crew gain <b>+${CFG.crewXpPerLeg} XP/leg</b>, advancing L1 → L2 → L3 for faster fire rate and predictive aim.</td></tr>
 </table>`;
 }
-panel.innerHTML=`<h2>Apocalyptic Train · v${GAME_VERSION} · Live Code Reference</h2><h1>CODEX & WIKI</h1>
-<p>Every unit sprite, section formula, material property and physics rule below is read live from the engine registries (<code>CARS</code>, <code>ROLES</code>, <code>MATS</code>, <code>CFG</code>) — it updates automatically whenever the code or balance changes.</p>
+panel.innerHTML=`<h2>Iron & Ash · v${GAME_VERSION} · Live Code Reference</h2><h1>CODEX & WIKI</h1>
+<p>Every unit sprite, section formula, material property and physics rule below is read live from the engine registries (<code>CARS</code>, <code>ROLES</code>, <code>MATS</code>, <code>SITES</code>, <code>BURIED</code>, <code>BIOMES</code>, <code>CFG</code>) — it updates automatically whenever the code or balance changes.</p>
 <div class="cx-tabs">${tabs.map(([k,t])=>`<button type="button" class="ub2" data-cxtab="${k}" aria-pressed="${k===tab}">${t}</button>`).join('')}</div>
 ${body}
 <div class="btns"><button class="go" id="cxBack" type="button">← ${G.cxFromPlay?'RESUME GAME':'BACK TO TITLE'}</button></div>`;
@@ -79,6 +94,15 @@ const x=cv.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(c.cv,0,0,c
 const rc=c.regCount||8,bw=cv.width/(rc===3?3:4);x.strokeStyle='rgba(0,255,255,.45)';x.lineWidth=1;
 for(let r=0;r<rc;r++){const x0=(rc===3?r:r%4)*bw,y0=rc===3?0:(r<4?0:c.d.split*scale),h=rc===3?cv.height:(r<4?c.d.split*scale:cv.height-c.d.split*scale);x.strokeRect(x0+.5,y0+.5,bw-1,h-1)}
 el.querySelector('.cx-art').appendChild(cv);
+});
+}
+if(tab==='map'&&G.world&&G.world.T){
+panel.querySelectorAll('[data-cxsite]').forEach(el=>{
+const type=el.dataset.cxsite,cw=110,ch=96,x=Math.round(clamp(G.world.W*.5,60,G.world.W-60)),gy=Math.round(G.world.T[x])+1;
+const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const c=cv.getContext('2d');c.translate(cw/2-x,ch-3-gy);
+try{drawSite(c,{x,type,w:0},mulberry32(7+type.length*13))}catch(e){}
+const big=document.createElement('canvas');big.width=cw*2;big.height=ch*2;const bx=big.getContext('2d');bx.imageSmoothingEnabled=false;bx.drawImage(cv,0,0,big.width,big.height);
+el.querySelector('.cx-art').appendChild(big);
 });
 }
 panel.querySelectorAll('[data-cxtab]').forEach(b=>{b.onclick=()=>showCodex(b.dataset.cxtab)});

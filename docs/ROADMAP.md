@@ -25,7 +25,7 @@ Story: [LORE.md](LORE.md) · AI unit design: [AI_DESIGNER.md](AI_DESIGNER.md) ·
 - Removed ~1,200 lines of dead "patch layer" code (v3.37–v3.39.2) that hooked functions it could never reach.
 - Source is modular again (`src/js/*.js`, 36 modules) with a zero-dependency build.
 
-**Known gaps:** "Vicky" does not exist anywhere in the code (needs a spec — see questions). Old Playwright test suite (`archive/modular-source-v3.25/tools/tests`) not yet ported. Driller sub-systems promised by the old handoff doc (heat, sonar, tether, strata, cave-ins) were never actually live — they are re-planned in Phase 2.
+**Known gaps:** Old Playwright test suite (`archive/modular-source-v3.25/tools/tests`) not yet ported. Driller sub-systems promised by the old handoff doc (heat, sonar, tether, strata, cave-ins) were never actually live — they are re-planned in Phase 2.
 
 ---
 
@@ -37,7 +37,7 @@ Repo layout, build, dev server, docs, bug triage, git.
 ### Phase 1 — Feel & look (2–3 weeks) ← next
 *Goal: 30 seconds of play looks and feels premium.*
 - **Aesthetic upgrade, pixel structure kept**
-  - Default view = pixels, ASCII becomes a toggle/"terminal" filter (decision needed).
+  - ✅ Default view = pixels; ASCII is the optional "terminal" filter on the ` key (decided 2026-11-15).
   - Per-material shading in the paint pass: metal specular streaks, wood grain, glass glint, rubber matte — computed from material + neighbour normals, no new art needed.
   - Lighting pass: firelight/lamp light as additive light map with soft falloff; bloom on GLOW/LAMP/fire; day–dusk–night palette per biome.
   - Parallax: 3–4 background layers per biome (ruined skyline, ash dunes, pylons), atmospheric perspective, ash/ember particles with wind.
@@ -83,9 +83,13 @@ See [AI_DESIGNER.md](AI_DESIGNER.md).
 ## Publishing pipeline
 `src/` → `npm run build` → `dist/index.html` → GitHub Actions → GitHub Pages (`https://<user>.github.io/iron-and-ash/`) → embedded in the Lovable site via iframe. Lovable owns the *website* repo; this repo owns the *game*.
 
+## Decisions
+- **2026-11-15** Pixels first; ASCII stays as an optional filter.
+- **2026-11-15** Next build focus: Phase 1 look & feel.
+- **2026-11-15** "Vicky" in old notes = the **Wiki**: the in-game, auto-updating database of everything made of pixels — units, sections, materials, buildings, underground features, biomes, later ground tiles and enemies. Rule: anything added to the world must come from a registry the Wiki reads.
+- **2026-11-15** GitHub via gh CLI; game published with GitHub Pages.
+
 ## Open decisions (owner: you)
-1. Default look: pixels-first with ASCII as a filter, or ASCII-first?
-2. Who/what is **Vicky**? (crew member? AI companion? mascot?)
-3. AI provider(s) for the designer: Claude only first, or multi-provider from day one?
-4. GitHub: account/org name, repo name, public or private?
-5. Where should API keys live: player's own key in the browser (simple, no server) or a small proxy (needed for a public site)?
+1. AI provider(s) for the designer: Claude only first, or multi-provider from day one?
+2. Where should API keys live: player's own key in the browser (simple, no server) or a small proxy (needed for a public site)?
+3. GitHub repo public or private? (Free GitHub Pages needs a public repo.)
