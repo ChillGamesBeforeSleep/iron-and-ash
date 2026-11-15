@@ -18,16 +18,14 @@ $('cxbtn').onclick=()=>showCodex('units');
 $('start').onclick=()=>startRun();
 if($('cont'))$('cont').onclick=()=>{const d=readSave();if(d)loadGame(d)};
 }
+function matLedgerTxt(m){const p=[];if(m.store)p.push(`holds ${CFG.px[m.store]} ${m.store==='charge'?'fuel-equivalent charge':m.store==='equip'?'equipment':m.store} per pixel`);if(m.eng)p.push(`engine work ${m.eng}`);if(m.grip)p.push(`grip ${m.grip}`);if(m.bite)p.push(`drill bite ${m.bite}`);p.push(`lift ${m.lift}`);p.push(`cost ${m.cost}`);return 'Per pixel: '+p.join(' · ')}
 function unitStatList(c){
-const rc=c.regCount||8;if(rc===3)return[`Grid: 1×3 flyer (${c.w}×${c.h} px)`,`Mass: ${c.d.mass}`,`Engine tank: ${CFG.airFuelCap} gas`,`Weapon pool: ${CFG.airAmmoCap} ammo (${CFG.airAmmoCap*CFG.airShotsPerAmmo} shots / ${CFG.airAmmoCap} bombs)`];
-const K=CFG.cap,cap={cab:false,medic:0,fuel:0,crew:0,ammo:0,scrap:0,equip:0,traction:0,boost:1,ram:false,cannon:null,workshop:false,water:0,pump:0,crane:null,carrier:null};
+/* v3.42: the Wiki prints the same Pixel Ledger sheet the simulation uses */
+const rc=c.regCount||8;if(rc===3&&!c.vkind)c.vkind=c.d.vkind||(AIR[c.type]?c.type:isAirBase(c.d.base)?c.d.base:'plane');
+const out=[`Grid: ${rc===3?'1×3':'4×2'} (${c.w}×${c.h} px)`,...ledgerSheet(c).map(x=>x[1])];
+if(rc!==3){const K=CFG.cap,cap={cab:false,medic:0,fuel:0,crew:0,ammo:0,scrap:0,equip:0,traction:0,boost:1,ram:false,cannon:null,workshop:false,water:0,pump:0,crane:null,carrier:null};
 for(let r=0;r<rc;r++){const R=ROLES[c.d.roles[r]];if(R&&R.on)R.on(cap,0,c,r,K)}
-const out=[`Grid: 4×2 (${c.w}×${c.h} px) · Mass ${c.d.mass}`];
-if(cap.cab)out.push('Driver cab');if(cap.traction)out.push(`Traction ${Math.round(cap.traction*100)}%`);if(cap.boost>1)out.push(`Power +${Math.round((cap.boost-1)*100)}%`);
-if(cap.ram)out.push('Plough (−65% impact)');if(cap.fuel)out.push(`Fuel +${cap.fuel}`);if(cap.water)out.push(`Water +${cap.water}`);
-if(cap.crew)out.push(`Seats +${cap.crew}`);if(cap.ammo)out.push(`Ammo +${cap.ammo}`);if(cap.scrap)out.push(`Scrap +${cap.scrap}`);
-if(cap.equip)out.push(`Equip +${cap.equip}`);if(cap.cannon)out.push('Turret cannon');if(cap.workshop)out.push('Ammo workshop');
-if(cap.pump)out.push('Fire pump');if(cap.crane)out.push('Salvage crane');if(cap.carrier)out.push(`Flight deck (${c.d.bay||'plane'})`);
+if(cap.cab)out.push('Driver cab');if(cap.ram)out.push('Plough (−65% impact)');if(cap.crew)out.push(`Seats +${cap.crew}`);if(cap.cannon)out.push('Turret cannon');if(cap.workshop)out.push('Ammo workshop');if(cap.pumpCar)out.push('Water pump');if(cap.crane)out.push('Crane');if(cap.carrier)out.push('Launch deck')}
 return out}
 function showCodex(tab){
 tab=tab||'units';const fromPlay=(G.state==='play');if(fromPlay){G.paused=true;G.cxFromPlay=true}
@@ -68,12 +66,13 @@ return `<tr><td><b>${B.name}</b></td><td><i style="display:inline-block;width:34
 }else if(tab==='mats'){
 body='<table><tr><td>Material</td><td>Code RGB / Sym</td><td>HP · Mass · Bounce</td><td>Live Physical Behaviour</td></tr>'+MATS.slice(1).map((m,idx)=>{
 const id=idx+1,hex='#'+m.pal.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
-return `<tr><td><i style="display:inline-block;width:10px;height:10px;background:${hex};margin-right:6px;border:1px solid #fff"></i><b>${m.key}</b></td><td><code>${hex}</code> · glyph <b>${m.sym||'#'}</b></td><td>${m.hp} HP · ${m.mass}× mass · ${m.bounce} bounce</td><td>${matBlurb(id)}</td></tr>`;
+return `<tr><td><i style="display:inline-block;width:10px;height:10px;background:${hex};margin-right:6px;border:1px solid #fff"></i><b>${m.key}</b></td><td><code>${hex}</code> · glyph <b>${m.sym||'#'}</b></td><td>${m.hp} HP · ${m.mass}× mass · ${m.bounce} bounce</td><td>${matBlurb(id)}<br><span style="color:var(--ok)">${matLedgerTxt(m)}</span></td></tr>`;
 }).join('')+'</table>';
 }else{
 body=`<table>
+<tr><td>The Pixel Ledger</td><td>Every pixel of the material layer is an asset, counted live. <b>Weight</b>: each pixel weighs its material's mass (${CFG.px.massUnit} pixel-mass = 1 t); tanks get lighter as they empty. <b>Storage</b>: FUEL pixels are the fuel tank (<b>${CFG.px.fuel}</b>/px), WATER the cistern (<b>${CFG.px.water}</b>/px), AMMO the magazine (<b>${CFG.px.ammo}</b>/px), SCRAP the hold (<b>${CFG.px.scrap}</b>/px), CLOTH the kit bags (<b>${CFG.px.equip}</b> equipment/px), BATTERY the charge. <b>Function</b>: a section works in proportion to the working material painted in it — engine work in ENGINE / BOILER, grip in WHEEL sections, bite in the drill head, lift from the skin of the whole body. <b>Balance</b>: all of it is measured against the weight it has to move. Shoot a tank and it holds less; strip armour and the plane climbs faster.</td></tr>
 <tr><td>4×2 Ground Units</td><td>Locomotives & wagons split into 8 sections (4 top job sections, 4 bottom wheel/axle sections). Any section below <b>${Math.round(CFG.disableAt*100)}%</b> HP switches off. Whole car breaks apart below <b>${Math.round(CFG.carDeathAt*100)}%</b>.</td></tr>
-<tr><td>1×3 Flying Units</td><td>Planes, helicopters & drones split into 3 horizontal boxes: <b>[0] CAB</b> (pilot & lift/tail), <b>[1] ENGINE</b> (${CFG.airFuelCap} gas, D=thrust, A=air-brake), <b>[2] WEAPON</b> (${CFG.airAmmoCap} ammo = ${CFG.airAmmoCap*CFG.airShotsPerAmmo} gun shots or ${CFG.airAmmoCap} bombs). A box disables below <b>${Math.round(CFG.disableAt*100)}%</b> HP or when <b>>${CFG.secMaxDmgPx} pixels</b> are damaged. Whole aircraft explodes below <b>${Math.round(CFG.planeDownAt*100)}%</b> into 3 fragile burning chunks.</td></tr>
+<tr><td>1×3 Flying Units</td><td>Planes, helicopters & drones split into 3 horizontal boxes: <b>[0] CAB</b> (pilot & lift/tail), <b>[1] ENGINE</b> (thrust from its working material; D=thrust, A=air-brake), <b>[2] WEAPON</b> (magazine = AMMO pixels; 1 ammo = ${CFG.airShotsPerAmmo} gun shots or 1 bombs). A box disables below <b>${Math.round(CFG.disableAt*100)}%</b> HP or when <b>>${CFG.secMaxDmgPx} pixels</b> are damaged. Whole aircraft explodes below <b>${Math.round(CFG.planeDownAt*100)}%</b> into 3 fragile burning chunks.</td></tr>
 <tr><td>Section Click Abilities</td><td>Clicking any damaged section repairs it (<b>1 scrap = +${Math.round(CFG.repairPerScrap*100)}%</b>). Clicking a section at <b>100%</b> activates its ability (CAB = Auto Drive, CANNON = Auto Gunner, DECK = Launch Aircraft, SEATS = Send Looters), which stays active down to <b>${Math.round(CFG.abilityKeep*100)}%</b>.</td></tr>
 <tr><td>Skill Landing & Rail Looting</td><td>Touch down with vertical sink rate <b>vy ≤ ${CFG.landSafeVy} px/s</b> and pitch <b>≤ ${Math.round(CFG.landMaxPitch*57)}°</b> to land anywhere on the rails (belly scraping sparks as you brake; crash impact past <b>${CFG.landCrashVy} px/s</b>). Press <b>[E]</b> while landed to send the pilot looting, or press <b>[E]</b> under your home Carrier wagon to dock and copy the plane's 1×3 health onto the wagon's 3 DECK boxes.</td></tr>
 <tr><td>Airlift & Co-Pilot</td><td>Landing within 75 px of Stranded Survivors (or looting a Camp via <b>[E]</b>) boards a co-pilot into the cockpit (<b>${Math.round((1-CFG.copilotReload)*100)}% faster gun reload</b>) and transfers them to your train crew when you dock on the carrier.</td></tr>

@@ -38,7 +38,7 @@ if(moving){
 c.parkedOnGround=false;
 const wantPitch=dy?clamp(-dy*.55,-.62,.62):0;
 c.pitch=lerp(c.pitch||0,wantPitch,Math.min(1,dt*6));
-const sp=CFG.drillSpeed*(.4+.6*f.eng);
+const sp=CFG.drillSpeed*(.4+.6*f.eng)*(c.digK||1);
 c.vx=lerp(c.vx||0,dx?dx*sp:Math.cos(c.pitch)*c.fx*sp*.65,Math.min(1,dt*6));
 c.vy=lerp(c.vy||0,dy*sp*.85,Math.min(1,dt*6));
 c.gas=Math.max(0,c.gas-dt*CFG.gasBurn*.85);
@@ -94,7 +94,7 @@ const f=airCaps(c);updateRegions(c);
 if(c.integrity<CFG.planeDownAt||!f.pilot)return 'crash';
 const mid=trainMid(),dx=mid-c.ax,d=Math.abs(dx);
 c.fx=dx>=0?1:-1;
-const wantV=d>135?c.fx*AIR.tank.vMax*(.4+.6*f.eng):d<65?-c.fx*AIR.tank.vMax*.5:G.train.v*.6;
+const wantV=d>135?c.fx*AIR.tank.vMax*(.4+.6*f.eng)*(c.driveK||1):d<65?-c.fx*AIR.tank.vMax*.5:G.train.v*.6;
 c.vx=lerp(c.vx||0,wantV,Math.min(1,dt*3.5));
 c.ax=clamp(c.ax+c.vx*dt,30,G.world.W-30);
 const xr=c.ax-c.w*.35,xf=c.ax+c.w*.35,yr=surfaceY(xr),yf=surfaceY(xf);

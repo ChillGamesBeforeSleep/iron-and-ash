@@ -46,6 +46,9 @@ const cars=G.train.cars,K=CFG.cap,cap={cab:false,medic:0,fuel:K.base.fuel,crew:0
 const loco=cars[0];
 for(const c of cars){const ro=c.d.roles;for(let r=0;r<8;r++){const R=ROLES[ro[r]];if(!R)continue;
 if(c.alive[r]){if(R.on)R.on(cap,c.lvl[r],c,r,K)}else if(R.off)R.off(cap,c.lvl[r],c,r,K)}}
+/* STORAGE law: capacity is counted from the container pixels that are still alive, wherever they are painted */
+for(const c of cars){const S=(G.state==='play'&&c.as?c.as:ledger(c)).store;cap.fuel+=S.fuel+S.charge;cap.water+=S.water;cap.ammo+=S.ammo;cap.scrap+=S.scrap;cap.equip+=S.equip}
+for(const k of ['fuel','water','ammo','scrap','equip'])cap[k]=Math.round(cap[k]);cap.boost=Math.min(cap.boost,2.6);
 for(const c of cars){let dead=0;for(let r=4;r<8;r++)if(!c.alive[r])dead++;const was=c.derailed;c.derailed=dead>=3;
 c.dside=Math.sign((c.alive[4]?0:1)+(c.alive[5]?0:1)-(c.alive[6]?0:1)-(c.alive[7]?0:1))*-1;
 if(c.derailed){cap.axleDrag+=CFG.derailDrag;if(!was&&G.state==='play'){log(`${c.d.name} derailed — repair its ${isLoco(c)?'wheels':'axles'}`,'bad');sfx('crash',.8,c.ax);jolt(c,0,30,.04*(c.dside||1))}}

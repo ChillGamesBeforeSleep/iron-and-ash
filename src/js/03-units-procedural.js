@@ -5,30 +5,25 @@
 const ROLES={
 CAB:     {short:'CAB', help:'Driver seat + a co-driver seat. Needs 1 crew; no cab, no driving.',up:'Armoured cab: −15% damage to this region',
 on:(cap)=>{cap.cab=true;cap.crew+=CFG.cap.CAB}},
-FUEL:    {short:'FUEL',help:'Fuel storage. Burns fast when hit.',up:'+40% fuel space',
-on:(cap,lv,c,r,K)=>{cap.fuel+=Math.round((c.d.base==='loco'?K.FUEL_LOCO:K.FUEL)*(1+.4*lv))}},
-BOILER:  {short:'BOIL',help:'Mod: +30% power while intact.',up:'+12% engine power',
-on:(cap,lv)=>{cap.boost=Math.max(cap.boost,1.3+.12*lv)}},
+FUEL:    {short:'FUEL',help:'Fuel tank: every FUEL pixel in the unit holds fuel. Burns fast when hit.',up:'+40% fuel per pixel in this section'},
+BOILER:  {short:'BOIL',help:'Engine work from the STEEL, COAL, OIL and WIRE pixels in this section adds power (the stock boiler: +30%). More power burns more fuel.',up:'+12% engine power',
+on:(cap,lv,c,r)=>{cap.boost+=CFG.px.boilerBoost*c.as.regEng[r]/ledgerRef().boiler+.12*lv}},
 RAM:     {short:'RAM', help:'Mod: plough. Cuts collision damage 65%.',up:'Stronger plough: less damage, breaks obstacles faster',
 on:(cap,lv)=>{cap.ram=true;cap.ramLvl=Math.max(cap.ramLvl,lv)}},
-WHEEL:   {short:'TRAC',help:'25% traction while intact.',up:'Armoured wheel',
-on:(cap)=>{cap.traction+=.25}},
+WHEEL:   {short:'TRAC',help:'Traction from the WHEEL and RUBBER pixels in this section (the stock locomotive: 25% per section).',up:'Armoured wheel',
+on:(cap,lv,c,r)=>{cap.traction+=.25*c.as.regGrip[r]/ledgerRef().grip}},
 AXLE:    {short:'AXLE',help:'Broken axle drags the train.',up:'Armoured axle',
 off:(cap)=>{cap.axleDrag+=1.4}},
 SEATS:   {short:'SEAT',help:'Seats 2 crew (a seat box). Injured crew heal only with someone sharing their box. Extra crew stand inside.',up:'+1 seat; upgraded seats slowly recruit survivors',
 on:(cap,lv,c,r,K)=>{cap.crew+=K.SEATS+lv;cap.seatLvl+=lv}},
-AMMO:    {short:'AMMO',help:'Stores 30 ammo. Explodes if destroyed loaded.',up:'+15 ammo space',
-on:(cap,lv,c,r,K)=>{cap.ammo+=K.AMMO+15*lv}},
+AMMO:    {short:'AMMO',help:'Magazine: every AMMO pixel in the unit holds rounds. Explodes if destroyed loaded.',up:'+50% ammo per pixel in this section'},
 CANNON:  {short:'GUN', help:'Turret. Click to fire.',up:'−20% reload, bigger blast',
 on:(cap,lv,c)=>{if(!cap.cannon){cap.cannon=c;cap.gunLvl=lv}}},
 WORKSHOP:{short:'SHOP',help:'[F] converts 1 scrap into 4 ammo.',up:'+2 ammo per scrap',
 on:(cap,lv)=>{cap.workshop=true;cap.shopLvl=Math.max(cap.shopLvl,lv)}},
-SCRAP:   {short:'SCRP',help:'Stores 10 scrap.',up:'+50% scrap space',
-on:(cap,lv,c,r,K)=>{cap.scrap+=Math.round(K.SCRAP*(1+.5*lv))}},
-STORE:   {short:'STOR',help:'Stores 6 scrap + 2 equipment.',up:'+50% scrap space, +1 equipment',
-on:(cap,lv,c,r,K)=>{cap.scrap+=Math.round(K.STORE_SCRAP*(1+.5*lv));cap.equip+=K.STORE_EQUIP+lv}},
-WATER:   {short:'WATR',help:'Holds 25 water. Park under a water tower to refill.',up:'+50% water space',
-on:(cap,lv)=>{cap.water+=Math.round(25*(1+.5*lv))}},
+SCRAP:   {short:'SCRP',help:'Scrap hold: every SCRAP pixel in the unit holds scrap.',up:'+50% scrap per pixel in this section'},
+STORE:   {short:'STOR',help:'Cargo: SCRAP pixels hold scrap, CLOTH pixels (tarps, kit bags) hold equipment.',up:'+50% scrap and equipment per pixel in this section'},
+WATER:   {short:'WATR',help:'Cistern: every WATER pixel in the unit holds water. Park under a water tower to refill.',up:'+50% water per pixel in this section'},
 PUMP:    {short:'PUMP',help:'Sprays water at fires; right-click aims the hose.',up:'Faster, wider spray, longer reach',
 on:(cap,lv,c)=>{if(!cap.pumpCar){cap.pump=1+lv;cap.pumpCar=c}}},
 BOOM:    {short:'BOOM',help:'Crane reach. Lifts wreckage, heaps and obstacles when slow. Needs a working WINCH.',up:'+30% crane reach',
@@ -43,19 +38,19 @@ ROLES.TAIL={short:'TAIL',help:'Tail: pitch control and stability (tail rotor on 
 ROLES.ROTOR={short:'ROTR',help:'Rotor: lift along the body\'s up axis; tilt it to move. Lose it and it drops.',up:'More lift'};
 ROLES.MG={short:'MG',help:'Machine gun: bursts at the target.',up:'Faster bursts'};
 ROLES.HULL={short:'HULL',help:'Plain structure: no job, it just soaks up hits and protects its neighbours.',up:'Thicker hull'};
-ROLES.WEAPON={short:'WPN',help:'Forward heavy gun + bomb rack: shoots in a straight line. Holds 3 ammo (1 ammo = 1 bomb or 10 gun shots).',up:'+1 ammo capacity, faster fire'};
+ROLES.WEAPON={short:'WPN',help:'Forward heavy gun + bomb rack: shoots in a straight line. Its AMMO pixels are the magazine (1 ammo = 1 bomb or 10 gun shots).',up:'+1 ammo capacity, faster fire'};
 ROLES.DECK={short:'DECK',help:'Flight deck: carries one aircraft or subterranean drill vehicle (click at 100% to launch, or to winch aboard in 2s when parked nearby).',up:'Faster re-arm, refuel & winch on deck',on:(cap,lv,c)=>{cap.carrier=c;cap.carrierLvl=(cap.carrierLvl||0)+lv}};
 const ROLE_META={
-WHEEL:   {group:'Running gear',need:{row:'bottom',mat:['WHEEL']},stat:()=>'+25% traction (pulls the train)'},
+WHEEL:   {group:'Running gear',need:{row:'bottom',mat:['WHEEL']},stat:()=>'traction ∝ WHEEL + RUBBER pixels (stock loco: 25% per section)'},
 AXLE:    {group:'Running gear',need:{row:'bottom',mat:['WHEEL']},stat:()=>'carries the car · broken: +1.4 drag'},
 CAB:     {group:'Control & power',need:{row:'top',mat:['CREW','GLASS']},stat:()=>`driver seat · +${CFG.cap.CAB} crew`},
-BOILER:  {group:'Control & power',need:{row:'top'},stat:lv=>`+${Math.round(30+12*lv)}% engine power`},
+BOILER:  {group:'Control & power',need:{row:'top'},stat:lv=>`power ∝ engine-work pixels (stock boiler +${Math.round(CFG.px.boilerBoost*100)}%)${lv?` · +${12*lv}% from upgrades`:''}`},
 RAM:     {group:'Control & power',need:{row:'top',mat:['ARMOR','STEEL']},stat:()=>'plough: −65% collision damage'},
-FUEL:    {group:'Storage',need:{row:'top',mat:['FUEL']},stat:(lv,base)=>`+${Math.round((base==='loco'?CFG.cap.FUEL_LOCO:CFG.cap.FUEL)*(1+.4*lv))} fuel capacity`},
-WATER:   {group:'Storage',need:{row:'top',mat:['WATER']},stat:lv=>`+${Math.round(25*(1+.5*lv))} water capacity`},
-AMMO:    {group:'Storage',need:{row:'top',mat:['AMMO'],pt:'cook'},stat:lv=>`+${CFG.cap.AMMO+15*lv} ammo capacity · explodes if broken while loaded`},
-SCRAP:   {group:'Storage',need:{row:'top',mat:['SCRAP','STEEL']},stat:lv=>`+${Math.round(CFG.cap.SCRAP*(1+.5*lv))} scrap capacity`},
-STORE:   {group:'Storage',need:{row:'top'},stat:lv=>`+${Math.round(CFG.cap.STORE_SCRAP*(1+.5*lv))} scrap, +${CFG.cap.STORE_EQUIP+lv} equipment`},
+FUEL:    {group:'Storage',need:{row:'top',mat:['FUEL']},stat:lv=>`${CFG.px.fuel} fuel per FUEL pixel${lv?` · +${40*lv}% here`:''}`},
+WATER:   {group:'Storage',need:{row:'top',mat:['WATER']},stat:lv=>`${CFG.px.water} water per WATER pixel${lv?` · +${50*lv}% here`:''}`},
+AMMO:    {group:'Storage',need:{row:'top',mat:['AMMO'],pt:'cook'},stat:lv=>`${CFG.px.ammo} ammo per AMMO pixel${lv?` · +${50*lv}% here`:''} · explodes if broken while loaded`},
+SCRAP:   {group:'Storage',need:{row:'top',mat:['SCRAP','STEEL']},stat:lv=>`${CFG.px.scrap} scrap per SCRAP pixel${lv?` · +${50*lv}% here`:''}`},
+STORE:   {group:'Storage',need:{row:'top'},stat:lv=>`${CFG.px.scrap} scrap per SCRAP pixel, ${CFG.px.equip} equipment per CLOTH pixel${lv?` · +${50*lv}% here`:''}`},
 SEATS:   {group:'Storage',need:{row:'top',mat:['CREW']},stat:lv=>`+${CFG.cap.SEATS+lv} crew seats`},
 CANNON:  {group:'Tools',need:{row:'top',mat:['ARMOR','STEEL'],pt:'turret',train:['AMMO']},stat:lv=>`turret · reload −${20*lv}%`},
 WORKSHOP:{group:'Tools',need:{row:'top',train:['SCRAP','STORE']},stat:lv=>`[F] 1 scrap → ${CFG.ammoPerScrap+2*lv} ammo`},
@@ -64,13 +59,13 @@ BOOM:    {group:'Tools',need:{row:'top',pt:'hook',unit:['WINCH']},stat:()=>'cran
 WINCH:   {group:'Tools',need:{row:'top',unit:['BOOM']},stat:()=>'crane lifting speed'},
 OPER:    {group:'Tools',need:{row:'top',mat:['CREW','GLASS']},stat:()=>'crane operator cab'},
 MEDIC:   {group:'Storage',need:{row:'top',mat:['CREW','WOOD']},stat:lv=>`heals injured crew ${Math.round(CFG.healBase/CFG.healMedic*(1+.5*lv)*10)/10}× faster for the 2 crew seated here`},
-ENGINE:  {group:'Flight',need:{mat:['WIRE','STEEL']},stat:()=>'thrust along the nose'},
+ENGINE:  {group:'Flight',need:{mat:['WIRE','STEEL','ALU','OIL','COAL','BATTERY']},stat:()=>'thrust ∝ engine-work pixels (STEEL, WIRE, OIL, COAL, ALU, BATTERY) · tank = FUEL + BATTERY pixels'},
 WING:    {group:'Flight',need:{},stat:()=>'lift ∝ airspeed², stalls past ~30°'},
 TAIL:    {group:'Flight',need:{},stat:()=>'pitch control + stability'},
 ROTOR:   {group:'Flight',need:{},stat:()=>'vertical lift, tilt to move'},
 MG:      {group:'Flight',need:{},stat:()=>'machine-gun bursts'},
 HULL:    {group:'Structure',need:{},stat:()=>'no job — armour and bulk'},
-WEAPON:  {group:'Flight',need:{mat:['AMMO','STEEL']},stat:lv=>`${CFG.airAmmoCap+lv} ammo (${(CFG.airAmmoCap+lv)*CFG.airShotsPerAmmo} gun shots or ${CFG.airAmmoCap+lv} bombs)`},
+WEAPON:  {group:'Flight',need:{mat:['AMMO','STEEL']},stat:()=>`magazine = AMMO pixels × ${CFG.px.ammo} ammo (1 ammo = ${CFG.airShotsPerAmmo} shots or 1 bomb) · on a driller its hard pixels are the drill bite`},
 DECK:    {group:'Tools',need:{row:'top',mat:['STEEL','ARMOR']},stat:()=>'carries & refuels 1 aircraft on the upper train deck (click at 100% to fly it)'},
 };
 for(const k in ROLE_META)Object.assign(ROLES[k],ROLE_META[k]);
@@ -185,7 +180,7 @@ P.px(1,1,M.GLOW,[255,70,50]);
 }
 function paintPxDrone(P){
 P.rect(0,0,6,0,M.STEEL,[136,132,124]);P.rect(11,0,17,0,M.STEEL,[136,132,124]);P.rect(2,1,3,1,M.STEEL,[76,74,70]);P.rect(14,1,15,1,M.STEEL,[76,74,70]);
-P.rect(3,2,14,5,M.ARMOR,(x,y,X,Y)=>brut([68,66,60],X,Y,.45,5,-1));P.rect(6,3,9,4,M.WIRE,[116,72,50]);P.rect(10,3,11,4,M.BATTERY,[64,84,90]);P.px(13,3,M.GLOW,[255,42,32]);P.rect(12,6,16,6,M.STEEL,[48,46,44]);
+P.rect(3,2,14,5,M.ARMOR,(x,y,X,Y)=>brut([68,66,60],X,Y,.45,5,-1));P.rect(6,3,9,4,M.WIRE,[116,72,50]);P.rect(10,3,11,4,M.BATTERY,[64,84,90]);P.px(13,3,M.GLOW,[255,42,32]);P.rect(4,3,5,4,M.AMMO,[86,88,52]);P.rect(12,4,13,5,M.AMMO,[86,88,52]);P.rect(12,6,16,6,M.STEEL,[48,46,44]);
 }
 function paintPassenger(P){
 const BODY=[92,84,74],ROOF=[52,49,46],DARK=[38,36,34],BONE=[186,178,162],RED=[166,42,34];
@@ -220,7 +215,7 @@ wagonBase(P);
 function paintArmored(P){
 const AR=[78,76,70],DARK=[36,35,34],CRATE=[88,84,54];
 for(let y=7;y<=17;y++){const inset=Math.max(0,Math.round((10-y)*.85));for(let x=1+inset;x<=58-inset;x++){P.px(x,y,M.ARMOR,(x2,y2,X,Y)=>brut(sh(AR,cyl((y-5)/14)),X,Y,.44,16,13))}}
-P.rect(3,10,13,15,M.AMMO,(x,y,X,Y)=>{let c=CRATE;if(x===8||y===12)c=[44,42,30];return brut(c,X,Y,.35)});
+{const mag=(x,y,X,Y)=>{let c=CRATE;if(Math.abs(x-8.5)<.6||Math.abs(y-13)<.6||x<2.7||x>15.3||y<8.7||y>17.3)c=[44,42,30];return brut(c,X,Y,.35)};P.rect(2,9,15,17,M.AMMO,mag);P.rect(4,7,15,8,M.AMMO,mag)}
 for(const r of [1,2,3])P.rect(r*15+4,11,r*15+8,12,M.ARMOR,[16,16,16]);
 P.ellipse(24,8,8.5,5.5,M.ARMOR,(x,y,X,Y)=>brut(sh(AR,cyl((y-2.5)/6)*1.12),X,Y,.42,10,-1),(x,y)=>y<=8);
 P.rect(36,1,38,7,M.STEEL,(x,y,X,Y)=>brut(sh(DARK,.85+.6*Math.sin(Math.PI*clamp((x-35.5)/3,0,1))),X,Y,.4));
@@ -275,7 +270,7 @@ wagonBase(P);
 function paintCargo(P){
 const W=[78,72,64];
 P.rect(1,10,58,17,M.STEEL,(x,y,X,Y)=>brut(sh(W,y<10.8?1.4:.92),X,Y,.48,7,18));
-const crate=(x0,y0,x1,y1)=>P.rect(x0,y0,x1,y1,M.WOOD,(x,y,X,Y)=>{let c=[118,84,50];if(x<=x0+.6||x>=x1-.6||y<=y0+.6||y>=y1-.6||Math.abs((x-x0)-(y-y0))<.7)c=[72,50,30];return brut(c,X,Y,.32)});
+const crate=(x0,y0,x1,y1)=>{const col=(x,y,X,Y)=>{let c=[118,84,50];if(x<=x0+.6||x>=x1-.6||y<=y0+.6||y>=y1-.6||Math.abs((x-x0)-(y-y0))<.7)c=[72,50,30];return brut(c,X,Y,.32)};P.rect(x0,y0,x1,y1,M.WOOD,col);P.rect(x0+1,y0+1,x1-1,y1-1,M.SCRAP,col)};
 crate(3,3,11,9);crate(12,5,18,9);crate(20,3,27,9);crate(46,3,53,9);
 P.rect(3,2,11,3,M.CLOTH,(x,y,X,Y)=>brut([72,82,62],X,Y,.25));P.rect(20,2,27,3,M.CLOTH,(x,y,X,Y)=>brut([68,78,58],X,Y,.25));
 P.rect(29,3,34,9,M.FUEL,(x,y,X,Y)=>brut(sh([138,52,36],cyl((x-29)/5)),X,Y,.4));

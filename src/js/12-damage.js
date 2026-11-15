@@ -57,7 +57,7 @@ const d=Math.hypot(i+.5-l[0],j+.5-l[1]);if(d>r)continue;const k=j*c.w+i,m=c.mat[
 if(ign&&FLAM[m]>0&&Math.random()<ign*(1-d/r))c.fire[k]=Math.max(c.fire[k],.55);
 {const ux=i+.5-l[0],uy=j+.5-l[1],rs=power*CFG.blastKick*(1-.6*d/r)/(d||1);hitPixel(c,k,power*(1-.7*d/r),(vx||0)*.4+(ux*c.co-uy*c.si)*rs,(vy||0)*.4+(ux*c.si+uy*c.co)*rs,'hit')}hits++;
 }
-if(hits){const I=Math.min(28,power*hits*.0011)/c.d.mass,down=wy<c.cyw?1:-1;jolt(c,(wx<c.cxw?1:-1)*I*.35,down*I,clamp((wx-c.cxw)/c.w*2,-1,1)*down*I*.012)}
+if(hits){const I=Math.min(28,power*hits*.0011)/carMass(c),down=wy<c.cyw?1:-1;jolt(c,(wx<c.cxw?1:-1)*I*.35,down*I,clamp((wx-c.cxw)/c.w*2,-1,1)*down*I*.012)}
 }
 }
 function igniteAt(wx,wy,chance){const h=carAtPoint(wx,wy);if(!h)return false;const[c,k]=h;if(FLAM[c.mat[k]]>0&&Math.random()<chance*Math.max(.15,FLAM[c.mat[k]])){c.fire[k]=Math.max(c.fire[k],.5);return true}return false}

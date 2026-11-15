@@ -64,6 +64,12 @@ landSafeVy: 18, landCrashVy: 48, landMaxPitch: .38, landScrapeDmg: .28, landBrak
 camShake: 0, pxCarHops: 4, pxMaxAge: 5, calmSimStep: .1, perfGovernor: 1,
 /* look & feel (v3.41): pixel-view post-processing and unit shading — all 0 = the old flat look */
 fxBloom: .9, fxVignette: .4, fxBevel: .05, fxGrain: .028, unitShade: 1, ashFlecks: 70, haze: 1,
+/* PIXEL LEDGER (v3.42) — what one material pixel is worth. See 04b-ledger.js and docs/BALANCE.md.
+   massUnit: pixel-mass per train-mass unit (the stock 7-car train weighs what it did before)
+   fuel/water/ammo/scrap/equip/charge: resource held by ONE container pixel (FUEL, WATER, AMMO, SCRAP, CLOTH, BATTERY)
+   emptyTank: share of a FUEL/WATER pixel's weight that stays when the tank is dry
+   boilerBoost: power the stock locomotive's boiler adds; minGas: reserve of a vehicle with no tank pixels at all */
+px: { massUnit: 3450, fuel: .08, water: .045, ammo: .08, scrap: .066, equip: .07, charge: .16, emptyTank: .35, boilerBoost: .3, minGas: 3 },
 camPad: 40, camVehicle: 320,
 wind: -14, shedMul: 1,
 fireSpread: 8, flamMul: 1, burnMul: 1, rustMul: 1, dmgMul: 1, diffPerLeg: .45,

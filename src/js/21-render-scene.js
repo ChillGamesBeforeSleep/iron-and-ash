@@ -40,9 +40,11 @@ if(G.raiders)for(const r of G.raiders)if(r.alive)put(r.x+.5,groundY(r.x)-5,r.fle
 const WHEEL_SPOKE=[184,176,160],WHEEL_GAP=[30,28,28],WHEEL_TIRE=[100,96,90],CREW=[214,204,182];
 function liquidLevels(c){
 if(G.state!=='play'&&G.state!=='leg'||!G.caps||!G.res)return null;
-if(!c.liqRows){c.liqRows=[];for(let r=0;r<8;r++){let lo=1e9,hi=-1;const want=c.d.roles[r]==='WATER'?M.WATER:c.d.roles[r]==='FUEL'?M.FUEL:0;if(want){for(let k=0;k<c.n;k++)if(c.reg[k]===r&&c.omat[k]===want){const j=(k/c.w)|0;if(j<lo)lo=j;if(j>hi)hi=j}}c.liqRows.push(hi>=0?[lo,hi]:null)}}
+if(c.vkind||isAirUnit(c.d))return null;
+if(!c.liqRows){c.liqRows=[];for(let r=0;r<8;r++){let lo=1e9,hi=-1,nf=0,nw=0;for(let k=0;k<c.n;k++)if(c.reg[k]===r){if(c.omat[k]===M.FUEL)nf++;else if(c.omat[k]===M.WATER)nw++}
+const want=nw>nf?(nw>24?M.WATER:0):(nf>24?M.FUEL:0);if(want){for(let k=0;k<c.n;k++)if(c.reg[k]===r&&c.omat[k]===want){const j=(k/c.w)|0;if(j<lo)lo=j;if(j>hi)hi=j}}c.liqRows.push(hi>=0?[lo,hi,want]:null)}}
 const fw=G.caps.water>0?clamp((G.res.water||0)/G.caps.water,0,1):0,ff=G.caps.fuel>0?clamp(G.res.fuel/G.caps.fuel,0,1):0,out=[];let any=false;
-for(let r=0;r<8;r++){const R=c.liqRows[r];if(!R){out.push(0);continue}const f=c.d.roles[r]==='WATER'?fw:ff;out.push(R[1]+1-Math.round(f*(R[1]-R[0]+1)));any=true}
+for(let r=0;r<8;r++){const R=c.liqRows[r];if(!R){out.push(0);continue}const f=R[2]===M.WATER?fw:ff;out.push(R[1]+1-Math.round(f*(R[1]-R[0]+1)));any=true}
 return any?out:null}
 /* how strongly each material catches light on an exposed top edge (v3.41). Metal and glass shine, cloth and rubber do not. */
 const SPEC=MATS.map(m=>({STEEL:.34,ARMOR:.26,ALU:.46,GLASS:.5,SCRAP:.22,WIRE:.3,BATTERY:.2,WOOD:.14,CONCRETE:.12,STONE:.12,COAL:.05,RUBBER:.04,CLOTH:.06,KEVLAR:.08,LEAF:.08,WHEEL:0,LAMP:0,GLOW:0}[m.key]??.14));
@@ -60,7 +62,7 @@ else if(m===M.WHEEL&&c.wheels[c.wid[k]]){/* v3.40: WHEEL pixels painted as plain
 let col;if(dd>wh.r-1.25)col=WHEEL_TIRE;else if(dd<1.2)col=WHEEL_SPOKE;else{const a=Math.atan2(dy,dx)-c.phase;col=Math.cos(a*(isLoco(c)?4:3))>.55?WHEEL_SPOKE:WHEEL_GAP;
 if(isLoco(c)&&dd>wh.r*.45&&Math.cos(a-Math.PI)>.75)col=[110,40,32]}
 r=col[0];g=col[1];b=col[2]}
-if((m===M.WATER||m===M.FUEL)&&lv){const L=lv[c.reg[k]];if(L&&((k/w)|0)<L){r*=.22;g*=.22;b*=.24}}
+if((m===M.WATER||m===M.FUEL)&&lv){const L=lv[c.reg[k]],LR=c.liqRows[c.reg[k]];if(L&&LR&&LR[2]===m&&((k/w)|0)<L){r*=.22;g*=.22;b*=.24}}
 if(m===M.LAMP){const f=.85+.15*Math.sin(t*20+k);r*=f;g*=f;b*=f}
 if(SWAY[m]){const i=k%w,j=(k/w)|0,wa=G.windAmp||.5,dx=Math.round(Math.sin(t*(2.5+2*wa)+j*.8+i*.33+c.id)*SWAY[m]*(.6+wa));
 if(dx&&i+dx>=0&&i+dx<w&&c.mat[k+dx]===m){const q=k+dx;r=c.col[q*3];g=c.col[q*3+1];b=c.col[q*3+2]}}

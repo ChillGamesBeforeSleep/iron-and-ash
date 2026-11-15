@@ -83,6 +83,6 @@ line(0,.22,'#eeeeee');line(1,22,'#ffa040');line(2,.18,'#60b0ff')}
 else{if((G.sim.t=(G.sim.t||0)-dt)>0)return;G.sim.t=.25}
 const el=$('simStat');if(!el)return;const u=G.train.cars.find(c=>c.type===FORGE_ID)||(G.vehicles||[]).find(v=>v.type===FORGE_ID);
 const dm=Object.entries(G.tel.dmg||{}).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,v])=>`${k} ${Math.round(v)}`).join(' · ');
-el.innerHTML=(u?`<div class="mini">${Array.from(u.regInt,(v,r)=>`<div style="background:${intColor(v)}">${ROLE_SHORT[u.d.roles[r]]||u.d.roles[r]} ${Math.round(v*100)}%${u.alive[r]?'':' OFF'}</div>`).join('')}</div>`:`<p class="sb-note">${G.sim.air?'':'Your unit is gone — it broke apart.'}</p>`)+
+el.innerHTML=(u?`<div class="mini">${Array.from(u.regInt.subarray(0,u.regCount||8),(v,r)=>`<div style="background:${intColor(v)}">${ROLE_SHORT[u.d.roles[r]]||u.d.roles[r]} ${Math.round(v*100)}%${u.alive[r]?'':' OFF'}</div>`).join('')}</div>`:`<p class="sb-note">${G.sim.air?'':'Your unit is gone — it broke apart.'}</p>`)+
 `<p class="sb-note">Damage to the train: ${dm||'none yet'}${G.sim.air?'':` · speed ${Math.round(G.train.v)}`}</p>`;
 }

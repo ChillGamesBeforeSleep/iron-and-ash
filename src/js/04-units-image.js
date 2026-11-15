@@ -80,6 +80,7 @@ for(let j=0;j<h;j++)for(let i=0;i<w;i++){const k=j*w+i;c.reg[k]=cellReg(w,d.spli
 for(let r=0;r<rc;r++)c.totalMax+=c.regMax[r];
 c.rad=Math.hypot(w,h)/2+1;
 c.cv=document.createElement('canvas');c.cv.width=w;c.cv.height=h;c.cx2=c.cv.getContext('2d');c.img=c.cx2.createImageData(w,h);
+ledger(c);
 return c;
 }
 function setMul(c){for(let r=0;r<8;r++)c.mul[r]=r<4?1-.15*c.lvl[r]:1-.22*c.lvl[r]}

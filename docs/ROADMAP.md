@@ -5,9 +5,13 @@ Story: [LORE.md](LORE.md) · AI unit design: [AI_DESIGNER.md](AI_DESIGNER.md) ·
 ## The game in one line
 **One world of pixel-matter, four ways to play it** — hold the train (defense), drive the line (exploration), go under (digging), take the sky (flight) — and every unit in all four is built from the same two PNG layers, by you or by an AI.
 
+## The core mechanic: the Pixel Ledger (v3.42)
+Every pixel of the material layer is an asset: it weighs something, it may hold something, it may do work. A unit's weight, storage, power, lift, grip and drilling are **counted from its living pixels**, never typed in. Rules and the full balance sheet: [BALANCE.md](BALANCE.md).
+
 ## Design pillars (decide everything against these)
 1. **Everything is material.** No hit points on units — only pixels of STEEL, WOOD, FUEL, GLASS… that burn, bend, leak, shatter. If the player can't predict it from "what is it made of", it's a bug.
-2. **Units are data, not code.** A vehicle is `look.png` + `material.png` + a small JSON spec. Anything that can make those — a person in Photoshop, the Forge, an AI model — can add content.
+2. **Every pixel is an asset.** No stat is typed in. If a number matters, it is counted from pixels (the Pixel Ledger).
+2b. **Units are data, not code.** A vehicle is `look.png` + `material.png` + a small JSON spec. Anything that can make those — a person in Photoshop, the Forge, an AI model — can add content.
 3. **Function follows form.** A wagon has an ability because its pixels form that section (CAB, GUN, DECK, WORKSHOP…). Shoot the section away and the ability is gone.
 4. **Readable, not calculated.** Physics is visual and rule-of-thumb. Satisfying beats accurate.
 5. **Small verbs, deep combos.** Crafting, digging, flying each have 3–5 controls; depth comes from combining wagons.
@@ -50,6 +54,12 @@ Repo layout, build, dev server, docs, bug triage, git.
   - Debris with weight classes; rubble piles that stay; chain reactions (fuel → ammo cook-off).
   - Liquids v2: pooled cell liquids (water, oil, fuel, acid, lava) flowing in tunnels and craters — this is what makes digging dangerous and fun.
 - **Sound pass** per material (metal ring, wood crack, glass).
+
+### Phase 1b — Build on the ledger ← next for gameplay
+- **One mover for all bodies:** replace the per-type control code with a single locomotion solver that reads the ledger — grip → drives, rotor work over weight → hovers, skin lift → flies, bite → digs — plus new LEG / TRACK / FLOAT roles so walkers, crawlers and boats are just different pixel arrangements.
+- **Wiring:** power travels along WIRE pixels from ENGINE / BATTERY to guns, lamps and pumps; cut the wire, lose the function.
+- **Crafting = pixels:** a unit costs the materials it is made of (its ledger); salvage returns what survived.
+- **Ledger overlay in play:** hold a key to see the train as assets — weight per wagon, what each tank holds, where the engine work is.
 
 ### Phase 2 — The four games, properly (4–6 weeks)
 - **Dig**: strata with hardness (ash silt → permafrost → basalt → bedrock), drill heat, sonar ping, tether/winch back to the rig, cave-ins using the real structure solver, flooding, Mnemos vaults as mini-dungeons, Deepfolk tunnels. Built *inside* `16f-digging.js`, not as hooks.

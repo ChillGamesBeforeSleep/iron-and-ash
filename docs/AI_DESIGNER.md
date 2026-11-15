@@ -60,8 +60,8 @@ A language model cannot paint a PNG, but it can write a **grid of characters**. 
  [5] Forge preview      player sees it in the test range, edits, saves — or rejects
 ```
 
-### Budget = balance
-Every material has a point cost (ARMOR 4, STEEL 2, WOOD 1, AMMO 5, FUEL 3 …) and every role a flat cost. `budget = Σ pixels × cost + Σ roles`. The validator rejects over-budget designs, so a model cannot "win" by filling the canvas with armor. The same number becomes the crafting/shop price.
+### Budget = balance (built in v3.42)
+The Pixel Ledger already does this. `ledger(c).cost` is the build cost (per-pixel material costs, see BALANCE.md) and is the budget an AI design must stay under. `ledgerSheet(c)` is the validator: it returns plain-language errors such as "stalls at 161, tops out at 144 — cannot stay up; use lighter skin or more engine", which go straight back to the model as its repair turn. A model cannot win by filling the canvas with armour: the weight grounds the unit before the budget does.
 
 ## Provider layer (many intellects, one socket)
 

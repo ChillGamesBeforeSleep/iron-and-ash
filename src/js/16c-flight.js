@@ -21,11 +21,20 @@ tank: {vTrim:0, vMax:32, accel:36,rotor:0,  ctrl:6,damp:6,  weather:0},
 function roleShare(c,role){let s=0,n=0;for(let r=0;r<8;r++)if(c.d.roles[r]===role){n++;if(c.alive[r])s+=c.regInt[r]}return n?s/n:0}
 function airMassProps(c){
 let m=0,mx=0,my=0,wx=0,wn=0,gear=0;const w=c.w;
-for(let k=0;k<c.n;k++){const mt=c.mat[k];if(!mt)continue;if(mt===M.WHEEL)gear++;const pm=PMASS[mt]||1,i=k%w,j=(k/w)|0;m+=pm;mx+=pm*i;my+=pm*j;
+const own=!!c.carrierPlane&&c.capGas>0,tankK=own?CFG.px.emptyTank+(1-CFG.px.emptyTank)*clamp((c.gas||0)/c.capGas,0,1):1;
+for(let k=0;k<c.n;k++){const mt=c.mat[k];if(!mt)continue;if(mt===M.WHEEL)gear++;const pm=(PMASS[mt]||1)*(mt===M.FUEL?tankK:1),i=k%w,j=(k/w)|0;m+=pm;mx+=pm*i;my+=pm*j;
 const ro=c.d.roles[c.reg[k]];if(ro==='WING'||ro==='ROTOR'){wx+=i;wn++}}
 c.am=Math.max(1,m)*.02;c.comX=m?mx/m:w/2;c.comY=m?my/m:c.h/2;c.gearPixels=gear;c.liftX=c.regCount===3?c.w/2:(wn?wx/wn:c.comX);
-if(!c.am0){c.am0=c.am;const A=AIR[c.vkind];c.kL=A.vTrim?c.am0*CFG.airG/(A.vTrim*A.vTrim):0;c.Tmax=c.am0*A.accel;c.kD=(c.Tmax||c.am0*CFG.airG*.6)/(A.vMax*A.vMax);c.Rmax=c.am0*CFG.airG*A.rotor}}
-function airInit(c){c.pitch=0;c.pr=0;c.ctl={thr:1,pitch:0,coll:0,drag:0};c.massT=0;c.gas=CFG.airFuelCap;c.scrap=c.scrap??CFG.airScrapCap;c.ammoPool=CFG.airAmmoCap*CFG.airShotsPerAmmo;airMassProps(c);c.fc={};airCaps(c)}
+/* v3.42 FUNCTION + BALANCE laws. Thrust, lift, drag and rotor force used to be scaled to each unit's own weight, so every design
+   flew identically. They are now fixed by what the unit is MADE of, measured against the stock unit of its kind:
+   thrust and rotor force ∝ engine work in the ENGINE box · wing lift ∝ skin lift of the whole body · drag ∝ size.
+   The real weight then decides what that is worth: a heavy plane stalls faster, an over-armoured gunship cannot leave the deck. */
+if(!c.am0){c.am0=c.am;const A=AIR[c.vkind],q=ledgerRatios(c),am=q.ref?q.ref.am:c.am;c.lq=q;
+c.kL=A.vTrim?am*CFG.airG/(A.vTrim*A.vTrim)*q.lift:0;c.Tmax=am*A.accel*q.eng;c.kD=(am*A.accel||am*CFG.airG*.6)/(A.vMax*A.vMax)*q.size;c.Rmax=am*CFG.airG*A.rotor*q.eng;
+c.digK=clamp(Math.sqrt(q.eng*q.bite/Math.max(.2,q.mass)),.4,1.8);c.driveK=clamp(Math.sqrt(q.eng/Math.max(.2,q.mass)),.4,1.8)}
+/* a holed tank or magazine holds less: what no longer fits is lost */
+if(c.carrierPlane&&c.as){const vc=vehCaps(c);c.capGas=vc.gas;c.capShots=vc.shots;if(c.gas>vc.gas)c.gas=vc.gas;if(c.ammoPool>vc.shots){c.ammoPool=vc.shots;c.shots=c.ammoPool;c.bombs=Math.floor(c.ammoPool/CFG.airShotsPerAmmo)}}}
+function airInit(c){c.pitch=0;c.pr=0;c.ctl={thr:1,pitch:0,coll:0,drag:0};c.massT=0;{const vc=vehCaps(c);c.capGas=vc.gas;c.capShots=vc.shots;c.gas=vc.gas;c.ammoPool=vc.shots}c.scrap=c.scrap??CFG.airScrapCap;c.am0=0;airMassProps(c);c.fc={};airCaps(c)}
 function airCaps(c){const f=c.fc||(c.fc={}),three=(c.regCount===3||c.d.roles.length===3);
 if(three){const cb=roleShare(c,'CAB');f.pilot=cb>0;f.wing=cb;f.tail=cb;f.eng=roleShare(c,'ENGINE');f.rotor=cb*(.35+.65*f.eng);f.wpn=roleShare(c,'WEAPON')}
 else{f.eng=roleShare(c,'ENGINE');f.wing=roleShare(c,'WING');f.tail=roleShare(c,'TAIL');f.rotor=roleShare(c,'ROTOR');f.pilot=c.d.roles.includes('CAB')?roleShare(c,'CAB')>0:true;f.wpn=1}

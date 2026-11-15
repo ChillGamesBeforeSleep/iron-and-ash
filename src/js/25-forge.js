@@ -107,9 +107,10 @@ function unitChecks(){
 const d=FG.d,out=[],ro=d.roles,bottom=ro.slice(4);
 if(isAirBase(d.base)){
 if(!ro.includes('CAB'))out.push(['e','No CAB box — needs a CAB section for pilot and lift/stability.']);
-if(!ro.includes('ENGINE'))out.push(['e','No ENGINE box (10 gas) — needs an ENGINE section for thrust & air-brake.']);
-if(!ro.includes('WEAPON'))out.push(['w','No WEAPON box (3 ammo = 30 shots / 3 bombs) — unarmed flyer.']);
-const b=airBalance();if(b)out.push(b.verdict);
+if(!ro.includes('ENGINE'))out.push(['e','No ENGINE box — needs an ENGINE section: the working material in it makes the thrust.']);
+if(!ro.includes('WEAPON'))out.push(['w','No WEAPON box — unarmed flyer.']);
+const b=airBalance();if(b&&(d.base==='plane'||d.base==='heli'||d.base==='drone'))out.push(b.verdict);
+{const c=G.train&&G.train.cars[0];if(c&&FG.unit&&c.vkind)out.push(...ledgerSheet(c))}
 return out}
 if(d.base==='loco'){
 if(!ro.includes('CAB'))out.push(['e','No CAB section — this locomotive cannot be driven.']);
@@ -120,7 +121,7 @@ const run=bottom.filter(x=>x==='AXLE'||x==='WHEEL').length;if(run<2)out.push(['w
 if(ro.includes('WHEEL'))out.push(['o','Powered wagon: its WHEEL sections add traction to the whole train.']);
 }
 if(ro.filter(x=>x==='CANNON').length>1)out.push(['w','Only one cannon per train can fire.']);
-if(d.spec.mass>2.2)out.push(['w',`Heavy (mass ${d.spec.mass}) — slows the whole train.`]);
+{const c=G.train&&G.train.cars[0];if(c&&FG.unit){const t=ledger(c).full/CFG.px.massUnit;if(t>1.6)out.push(['w',`Heavy (${t.toFixed(2)} t — the stock locomotive is 1.35 t): it slows the whole train.`]);out.push(...ledgerSheet(c))}}
 return out;
 }
 function allChecks(){
@@ -143,13 +144,14 @@ function neededPoints(){const d=FG.d;if(isAirBase(d.base))return d.base==='plane
 d.roles.forEach(ro=>{const p=ROLES[ro]&&ROLES[ro].need&&ROLES[ro].need.pt;if(p)s.add(p)});if(d.roles.includes('BOOM'))s.add('store');return[...s]}
 function unitAbilities(){
 if(!FG.unit)return[];const c=G.train&&G.train.cars[0];if(!c)return[];
-if(isAirBase(FG.d.base)){const a=[];for(const ro of ['ENGINE','WING','TAIL','ROTOR','CAB','MG','FUEL'])if(c.d.roles.includes(ro))a.push([ro,Math.round(roleShare(c,ro)*100)+'%']);const b=airBalance();if(b)a.push(['Lift vs centre of mass',(b.off>=0?'+':'')+b.off.toFixed(1)+' px']);let px=0;for(let k=0;k<c.n;k++)if(c.omat[k])px++;a.push(['Pixels',px]);return a}
+if(isAirBase(FG.d.base)){const a=[];for(const ro of ['ENGINE','WING','TAIL','ROTOR','CAB','MG','FUEL'])if(c.d.roles.includes(ro))a.push([ro,Math.round(roleShare(c,ro)*100)+'%']);const b=airBalance();if(b)a.push(['Lift vs centre of mass',(b.off>=0?'+':'')+b.off.toFixed(1)+' px']);{const vc=vehCaps(c),L=ledger(c);a.push(['Tank',vc.gas+' gas']);a.push(['Magazine',vc.shots+' shots']);a.push(['Weight',(L.full/CFG.px.massUnit).toFixed(2)+' t']);a.push(['Build cost',Math.round(L.cost)+' pts'])}let px=0;for(let k=0;k<c.n;k++)if(c.omat[k])px++;a.push(['Pixels',px]);return a}
 const K=CFG.cap,cap={cab:false,medic:0,fuel:0,crew:0,ammo:0,scrap:0,equip:0,traction:0,boost:1,ram:false,ramLvl:0,cannon:null,gunLvl:0,workshop:false,shopLvl:0,axleDrag:0,seatLvl:0,water:0,pump:0,pumpCar:null,crane:null,craneLvl:0};
 for(let r=0;r<8;r++){const R=ROLES[c.d.roles[r]];if(R&&R.on&&c.alive[r])R.on(cap,0,c,r,K)}
+{const S=ledger(c).store;cap.fuel+=Math.round(S.fuel+S.charge);cap.water+=Math.round(S.water);cap.ammo+=Math.round(S.ammo);cap.scrap+=Math.round(S.scrap);cap.equip+=Math.round(S.equip)}
 const a=[];if(cap.cab)a.push(['Driver cab','yes']);if(cap.traction)a.push(['Traction',Math.round(cap.traction*100)+'%']);if(cap.boost>1)a.push(['Engine power','+'+Math.round((cap.boost-1)*100)+'%']);if(cap.ram)a.push(['Plough','yes']);
 if(cap.fuel)a.push(['Fuel',cap.fuel]);if(cap.water)a.push(['Water',cap.water]);if(cap.crew)a.push(['Crew seats',cap.crew]);if(cap.ammo)a.push(['Ammo',cap.ammo]);if(cap.scrap)a.push(['Scrap',cap.scrap]);if(cap.equip)a.push(['Equipment',cap.equip]);
 if(cap.cannon)a.push(['Cannon','yes']);if(cap.workshop)a.push(['Workshop','yes']);if(cap.pumpCar)a.push(['Water pump','yes']);if(cap.crane)a.push(['Crane','yes']);if(cap.medic)a.push(['Medic','×'+(Math.round(CFG.healBase/CFG.healMedic*cap.medic*10)/10)+' healing']);
-let px=0;for(let k=0;k<c.n;k++)if(c.omat[k])px++;a.push(['Mass',FG.d.spec.mass]);a.push(['Pixels',px]);return a;
+let px=0;for(let k=0;k<c.n;k++)if(c.omat[k])px++;a.push(['Weight',(ledger(c).full/CFG.px.massUnit).toFixed(2)+' t']);a.push(['Build cost',Math.round(ledger(c).cost)+' pts']);a.push(['Pixels',px]);return a;
 }
 function airBalance(){const c=G.train&&G.train.cars[0];if(!c||!isAirBase(FG.d.base)||!c.vkind)return null;airMassProps(c);
 const off=c.liftX-c.comX,plane=FG.d.base==='plane';let verdict;
@@ -529,5 +531,5 @@ else if(G.mouse.down&&STEPS[FG.step][0]!=='test'&&(G.wsCool=(G.wsCool||0)-dt)<=0
 zoomTick(dt,190);const wide=innerWidth>760,tx=c.ax-S.W*(wide?.66:.5),ty=c.ay-S.H*.6;
 G.camX=lerp(G.camX,tx,Math.min(1,dt*4));G.camY=lerp(G.camY,ty,Math.min(1,dt*4));G.camX=clamp(G.camX,0,G.world.W-S.W-1);G.camY=clamp(G.camY,0,G.world.H-S.H-1);
 G.shake=Math.max(0,G.shake-dt*18);G.flash=Math.max(0,G.flash-dt*2.5);
-if((FG.miniT-=dt)<=0&&$('wsMini')){FG.miniT=.15;$('wsMini').innerHTML=Array.from(c.regInt,(v,r)=>`<div style="background:${intColor(v)}">${ROLE_SHORT[c.d.roles[r]]||c.d.roles[r]} ${Math.round(v*100)}%${c.alive[r]?'':' OFF'}</div>`).join('')}
+if((FG.miniT-=dt)<=0&&$('wsMini')){FG.miniT=.15;$('wsMini').innerHTML=Array.from(c.regInt.subarray(0,c.regCount||8),(v,r)=>`<div style="background:${intColor(v)}">${ROLE_SHORT[c.d.roles[r]]||c.d.roles[r]} ${Math.round(v*100)}%${c.alive[r]?'':' OFF'}</div>`).join('')}
 }

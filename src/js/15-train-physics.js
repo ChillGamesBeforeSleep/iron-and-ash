@@ -3,7 +3,7 @@
    ===================================================================== */
 function trainPhysics(dt){
 const tr=G.train,cars=tr.cars,cap=G.caps;
-let Ms=0,slope=0;for(const c of cars){const m=c.d.mass*(.6+.4*c.integrity);Ms+=m;slope+=m*c.si}
+let Ms=0,slope=0;for(const c of cars){const m=carMass(c);Ms+=m;slope+=m*c.si}tr.mass=Ms;
 const can=cap.driver&&G.res.fuel>0&&cap.traction>0;
 const thr=can?G.throttle:0;
 const F=thr*CFG.power*cap.traction*cap.boost;
@@ -11,7 +11,7 @@ tr.v+=(F-CFG.gravity*slope)/Ms*dt;
 let roll=CFG.rolling+cap.axleDrag;if(G.brake)roll+=CFG.brake*(.35+.65*cap.traction);
 const fr=(roll+CFG.airDrag*tr.v*tr.v)*dt;
 if(Math.abs(tr.v)<=fr)tr.v=0;else tr.v-=Math.sign(tr.v)*fr;
-if(can){const b=Math.abs(thr)*cap.traction*CFG.fuelBurn*(cap.boost>1?1.12:1)*dt;G.res.fuel=Math.max(0,G.res.fuel-b);G.tel.fuel+=b}
+if(can){const b=Math.abs(thr)*cap.traction*CFG.fuelBurn*(1+.4*(cap.boost-1))*dt;G.res.fuel=Math.max(0,G.res.fuel-b);G.tel.fuel+=b}
 tr.x+=tr.v*dt;
 const maxX=G.world.LEN+190;if(tr.x+cars[0].w/2>maxX){tr.x=maxX-cars[0].w/2;tr.v=Math.min(tr.v,0)}
 G.stats.dist+=Math.abs(tr.v*dt);
@@ -38,7 +38,7 @@ tr.v=front?-Math.min(8,speed*.15):Math.min(8,speed*.15);
 tr.x=front?o.x-car.w/2-.5:tr.x+(o.x+o.w-(car.x-car.w/2))+.5;
 }
 function loosePhysics(dt){
-for(const g of G.loose){let Ms=0,slope=0,drag=0;for(const c of g.cars){const m=c.d.mass;Ms+=m;slope+=m*c.si;for(let r=4;r<8;r++)if(!c.alive[r])drag+=1.4}
+for(const g of G.loose){let Ms=0,slope=0,drag=0;for(const c of g.cars){const m=carMass(c);Ms+=m;slope+=m*c.si;for(let r=4;r<8;r++)if(!c.alive[r])drag+=1.4}
 g.v-=CFG.gravity*slope/Ms*dt;const fr=(CFG.rolling*1.6+drag)*dt;if(Math.abs(g.v)<=fr)g.v=0;else g.v-=Math.sign(g.v)*fr;
 g.a=lerp(g.a||0,(g.v-(g.pv??g.v))/Math.max(dt,1e-3),.3);g.pv=g.v;
 g.x+=g.v*dt;if(g.x<40){g.x=40;g.v=0}motionTick(g.cars,g.a,g.v,dt);layout(g.cars,g.x)}

@@ -27,7 +27,7 @@ src/            the game — edit here
 tools/          build.mjs, dev.mjs
 assets/         unit templates, material palette, example units
 art/            my-creations/ (your units) · reference/ (AI image tests, PSDs — not in git)
-docs/           LORE · ROADMAP · ARCHITECTURE · AI_DESIGNER
+docs/           LORE · ROADMAP · BALANCE · ARCHITECTURE · AI_DESIGNER
 archive/        every old build, the v3.25 modular source, old patch scripts (not in git)
 dist/           build output (not in git; npm run deploy publishes it)
 ```
@@ -36,6 +36,7 @@ dist/           build output (not in git; npm run deploy publishes it)
 - [World Bible](docs/LORE.md) — story, factions, campaign
 - [Roadmap](docs/ROADMAP.md) — strategy, phases, open decisions
 - [Architecture](docs/ARCHITECTURE.md) — code map and rules
+- [Balance & the Pixel Ledger](docs/BALANCE.md) — the core mechanic: every pixel is an asset; all unit numbers
 - [AI Designer](docs/AI_DESIGNER.md) — plan for AI-built vehicles and the AI-vs-AI arena
 
 ## Controls (short)

@@ -28,9 +28,9 @@ function bayService(car){
 const bay=bayOf(car),u=bay.unit,parts=[];
 if(u&&G.res.scrap>=1){let used=0;for(let r=0;r<(u.regCount||3);r++)while(u.regMax[r]&&u.regInt[r]<.995&&G.res.scrap>=1&&used<6){G.quietLog=true;repairRegion(u,r);G.quietLog=false;used++}
 if(used)parts.push(`repaired (${used} scrap)`)}
-const want=CFG.airFuelCap-(bay.gas||0),fuel=Math.max(0,Math.min(G.res.fuel,want/CFG.gasPerFuel));
+const vc=vehCaps(u||bay.type),want=vc.gas-(bay.gas||0),fuel=Math.max(0,Math.min(G.res.fuel,want/CFG.gasPerFuel));
 if(fuel>.01){G.res.fuel-=fuel;bay.gas=(bay.gas||0)+fuel*CFG.gasPerFuel;parts.push(`+${Math.round(fuel*CFG.gasPerFuel)} gas (−${fuel.toFixed(1)} fuel)`)}
-const capS=CFG.airAmmoCap*CFG.airShotsPerAmmo,need=Math.ceil((capS-(bay.ammo||0))/CFG.airShotsPerAmmo),take=Math.max(0,Math.min(need,G.res.ammo|0));
+const capS=vc.shots,need=Math.ceil((capS-(bay.ammo||0))/CFG.airShotsPerAmmo),take=Math.max(0,Math.min(need,G.res.ammo|0));
 if(take>0){G.res.ammo-=take;bay.ammo=Math.min(capS,(bay.ammo||0)+take*CFG.airShotsPerAmmo);parts.push(`+${take} ammo`)}
 const needSc=Math.max(0,CFG.airScrapCap-(bay.scrap||0)),takeSc=Math.min(needSc,Math.floor(G.res.scrap||0));
 if(takeSc>0){G.res.scrap-=takeSc;bay.scrap=(bay.scrap||0)+takeSc;parts.push(`+${takeSc} scrap`)}

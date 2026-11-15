@@ -102,9 +102,9 @@ if(e.craft&&c===e.craft&&G.vehicles.includes(c)){
 m.x=c.cxw;m.where='out';m.state='fly';
 if(!c.pilot||!c.pilot.alive)c.pilot=m;else{c.passengers=c.passengers||[];if(!c.passengers.includes(m))c.passengers.push(m);c.pax=c.passengers[0]||null}
 c.lootingHold=false;c.player=G.piloting===c;if(c.landed){c.parkedOnGround=true;c.state='parkedGround';c.lever=0;if(c.ctl)c.ctl.thr=0}else c.state='attack';
-const gf=invTake(m,'fuel',Math.max(0,(CFG.airFuelCap-(c.gas||0))/CFG.gasPerFuel));c.gas=Math.min(CFG.airFuelCap,(c.gas||0)+gf*CFG.gasPerFuel);
+const vc=vehCaps(c),gf=invTake(m,'fuel',Math.max(0,(vc.gas-(c.gas||0))/CFG.gasPerFuel));c.gas=Math.min(vc.gas,(c.gas||0)+gf*CFG.gasPerFuel);
 const gs=invTake(m,'scrap',Math.max(0,CFG.airScrapCap-Math.floor(c.scrap||0)));c.scrap=Math.min(CFG.airScrapCap,(c.scrap||0)+gs);
-const capS=CFG.airAmmoCap*CFG.airShotsPerAmmo,ga=invTake(m,'ammo',Math.max(0,Math.ceil((capS-(c.ammoPool||0))/CFG.airShotsPerAmmo)));c.ammoPool=Math.min(capS,(c.ammoPool||0)+ga*CFG.airShotsPerAmmo);c.shots=c.ammoPool;c.bombs=Math.floor(c.ammoPool/CFG.airShotsPerAmmo);
+const capS=vc.shots,ga=invTake(m,'ammo',Math.max(0,Math.ceil((capS-(c.ammoPool||0))/CFG.airShotsPerAmmo)));c.ammoPool=Math.min(capS,(c.ammoPool||0)+ga*CFG.airShotsPerAmmo);c.shots=c.ammoPool;c.bombs=Math.floor(c.ammoPool/CFG.airShotsPerAmmo);
 transferPackToVehicle(m,c);m.hold={};e.carriers++;if(G.piloting===c)setControl(c);G.hudSig='';G.crewHtml='';log(`${m.name} climbs back into the ${c.d.name.toLowerCase()} — cargo secured (${c.inv.length}/${VEHICLE_PACK} slots)`,'good');
 }else{boardMember(m,c);if(m.hurt){G.tel.injured=(G.tel.injured||0)+1}else e.carriers++}}}
 if(m.state!=='work'&&m.state!=='in'){const[,d]=near(m.x);if(d>CFG.crewLostDist){killMember(m);log(`${m.name} was left behind`,'bad')}}

@@ -23,6 +23,7 @@ Because all modules share one scope, a `const`/`function` defined in one file is
 | `02-materials` | **the material table**: hp, mass, flammability, drip, glow… |
 | `03-units-procedural` | `ROLES`, `CARS`, and the painters for built-in units (`paintLoco`, `paintDriller`, `paintMole`…) |
 | `04-units-image` | PNG-based units: `compileUnit`, `makeCar` |
+| `04b-ledger` | **the Pixel Ledger — the core calculation.** `ledger(c)` counts a unit's living pixels into weight, storage, engine work, grip, bite, lift and cost; `carMass`, `vehCaps`, `ledgerRatios` feed the simulation; `ledgerSheet` feeds the Forge and Wiki; `ledgerTable()` regenerates docs/BALANCE.md |
 | `05-state` | `G`, screen size |
 | `06-world` | terrain, biomes, sites, buried vaults (`genWorld`) |
 | `07-train` | consist, coupling, layout |
@@ -47,7 +48,8 @@ Because all modules share one scope, a `const`/`function` defined in one file is
 
 ## Rules
 1. **Edit the module.** Never add a second `<script>` or hook functions through `window` — nothing outside the closure can see the game. The build fails on `window._hook_*` / `window._orig_*`.
-2. **Numbers go in `CFG`.** The build warns about `CFG.x` used but not defined.
+2. **No typed-in unit stats.** Weight, capacity, power, lift, grip and bite come from `ledger(c)` (04b). A new stat means a new per-pixel material property in `MAT_ASSET` or a yield in `CFG.px` — never a number on the unit. See docs/BALANCE.md.
+2b. **Numbers go in `CFG`.** The build warns about `CFG.x` used but not defined.
 3. **New feature = new file** with the next free number (`16f-digging.js`), a header comment saying what it owns.
 4. **One exception must not freeze the game**: the frame loop catches, logs once, and keeps going — but an `ENGINE ERROR` in the log is always a bug to fix.
 5. **Test before commit**: `npm run build` must pass; play one leg; if you touched units, run the Forge test range for that type.

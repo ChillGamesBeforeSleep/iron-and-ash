@@ -25,7 +25,7 @@ const back=1.5*i,fwd=(CFG.gap-.6)*i,tgt=clamp(-a*CFG.slack*i,-back,fwd);
 c.svx+=((tgt-c.sx)*55-c.svx*7)*dt;c.sx+=c.svx*dt;if(c.sx>fwd){c.sx=fwd;c.svx*=-.3}if(c.sx<-back-1){c.sx=-back-1;c.svx*=-.3}
 const curv=(T(c.x+12)-2*T(c.x)+T(c.x-12))/144;
 const sink=c.derailed?2.8:0;c.svy+=(-curv*v*v*CFG.bumpCurve-(c.sy-sink)*240-c.svy*10)*dt;
-const j=Math.floor((c.x+i*17)/46);if(c.jx!==null&&c.jx!==j&&av>2){c.svy-=av*CFG.bumpJoint*(.6+Math.random()*.8)/c.d.mass;c.svr+=(Math.random()-.5)*av*.0015}c.jx=j;
+const j=Math.floor((c.x+i*17)/46);if(c.jx!==null&&c.jx!==j&&av>2){c.svy-=av*CFG.bumpJoint*(.6+Math.random()*.8)/carMass(c);c.svr+=(Math.random()-.5)*av*.0015}c.jx=j;
 c.sy+=c.svy*dt;if(c.sy<-3.5){c.sy=-3.5;c.svy*=-.3}if(c.sy>(c.derailed?3.4:1.2)){c.sy=c.derailed?3.4:1.2;c.svy*=-.3}
 c.svr+=((-a*CFG.pitch+(c.derailed?.055*(c.dside||1):0)-c.sr)*80-c.svr*9)*dt;c.sr=clamp(c.sr+c.svr*dt,-.09,.09);
 }
@@ -41,6 +41,7 @@ if(!c.regDmgPx)c.regDmgPx=new Uint16Array(8);else c.regDmgPx.fill(0);
 for(let k=0;k<c.n;k++){const rg=c.reg[k];if(c.mat[k]){c.regHp[rg]+=c.hp[k];if(c.fire[k]>0)c.regFire[rg]++;if(c.hp[k]<MAXHP[c.mat[k]]*.95)c.regDmgPx[rg]++}else if(c.omat&&c.omat[k])c.regDmgPx[rg]++}
 const rc=c.regCount||8;let s=0;for(let r=0;r<rc;r++){c.regInt[r]=c.regMax[r]?c.regHp[r]/c.regMax[r]:0;const pxOut=rc===3&&c.regDmgPx[r]>CFG.secMaxDmgPx;c.alive[r]=c.regInt[r]>=CFG.disableAt&&!pxOut;s+=c.regHp[r]}
 c.integrity=s/c.totalMax;
+ledger(c);
 }
 function hitPixel(c,k,amt,vx,vy,cause){
 if(MATS[c.mat[k]].spark&&Math.random()<.6){const p=toWorld(c,k%c.w+.5,((k/c.w)|0)+.5);for(let q=0;q<4;q++)spark(p[0],p[1],rand(-60,60),rand(-70,-10),rand(.15,.4),[255,rand(200,240),140],1);if(Math.random()<.04)c.fire[k]=Math.max(c.fire[k],.4)}
