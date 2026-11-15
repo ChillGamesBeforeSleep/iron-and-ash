@@ -81,7 +81,7 @@ See [AI_DESIGNER.md](AI_DESIGNER.md).
 - **Later, only if needed**: ES modules + Vite, TypeScript types for the unit spec, WebGL instanced pixel renderer for 2× resolution.
 
 ## Publishing pipeline
-`src/` → `npm run build` → `dist/index.html` → GitHub Actions → GitHub Pages (`https://<user>.github.io/iron-and-ash/`) → embedded in the Lovable site via iframe. Lovable owns the *website* repo; this repo owns the *game*.
+`src/` → `npm run build` → `dist/index.html` → `npm run deploy` → `gh-pages` branch → GitHub Pages (https://chillgamesbeforesleep.github.io/iron-and-ash/) → embedded in the Lovable site via iframe. Lovable owns the *website* repo; this repo owns the *game*.
 
 ## Decisions
 - **2026-11-15** Pixels first; ASCII stays as an optional filter.

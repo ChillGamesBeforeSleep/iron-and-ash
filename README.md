@@ -3,12 +3,15 @@
 Post-apocalyptic armored-train exploration on a pixel-material physics engine.
 Drive the line, hold off raiders and machine factions, dig for buried vaults, take the sky — and build every vehicle from two PNG layers.
 
+**Play online:** https://chillgamesbeforesleep.github.io/iron-and-ash/
+
 ## Play / develop
 
 ```bash
 npm run dev      # rebuilds on every save, serves http://localhost:5173 with auto-reload
 npm run build    # src/ -> dist/index.html (single self-contained file)
 npm run release  # bump version + keep a copy in builds/
+npm run deploy   # build and publish to GitHub Pages (gh-pages branch)
 ```
 
 Needs only Node 18+. No dependencies, no install step.
@@ -26,7 +29,7 @@ assets/         unit templates, material palette, example units
 art/            my-creations/ (your units) · reference/ (AI image tests, PSDs — not in git)
 docs/           LORE · ROADMAP · ARCHITECTURE · AI_DESIGNER
 archive/        every old build, the v3.25 modular source, old patch scripts (not in git)
-dist/           build output (not in git; GitHub Pages builds it)
+dist/           build output (not in git; npm run deploy publishes it)
 ```
 
 ## Docs
