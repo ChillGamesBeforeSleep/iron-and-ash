@@ -34,7 +34,9 @@ Story: [LORE.md](LORE.md) · AI unit design: [AI_DESIGNER.md](AI_DESIGNER.md) ·
 ### Phase 0 — Foundation ✅ (this session)
 Repo layout, build, dev server, docs, bug triage, git.
 
-### Phase 1 — Feel & look (2–3 weeks) ← next
+### Phase 1 — Feel & look (2–3 weeks) ← in progress
+**Done in v3.41 (pass 1):** bloom/grading/vignette post shader, per-material edge lighting, haze, moon halo, drifting ash.
+**Still to do:** day–dusk–night palettes per biome, richer parallax art, 2× unit resolution, hit-stop and camera kick, wheel dust, destruction behaviour card, liquids v2, per-material sound.
 *Goal: 30 seconds of play looks and feels premium.*
 - **Aesthetic upgrade, pixel structure kept**
   - ✅ Default view = pixels; ASCII is the optional "terminal" filter on the ` key (decided 2026-11-15).

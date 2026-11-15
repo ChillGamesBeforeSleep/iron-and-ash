@@ -44,6 +44,8 @@ if(!c.liqRows){c.liqRows=[];for(let r=0;r<8;r++){let lo=1e9,hi=-1;const want=c.d
 const fw=G.caps.water>0?clamp((G.res.water||0)/G.caps.water,0,1):0,ff=G.caps.fuel>0?clamp(G.res.fuel/G.caps.fuel,0,1):0,out=[];let any=false;
 for(let r=0;r<8;r++){const R=c.liqRows[r];if(!R){out.push(0);continue}const f=c.d.roles[r]==='WATER'?fw:ff;out.push(R[1]+1-Math.round(f*(R[1]-R[0]+1)));any=true}
 return any?out:null}
+/* how strongly each material catches light on an exposed top edge (v3.41). Metal and glass shine, cloth and rubber do not. */
+const SPEC=MATS.map(m=>({STEEL:.34,ARMOR:.26,ALU:.46,GLASS:.5,SCRAP:.22,WIRE:.3,BATTERY:.2,WOOD:.14,CONCRETE:.12,STONE:.12,COAL:.05,RUBBER:.04,CLOTH:.06,KEVLAR:.08,LEAF:.08,WHEEL:0,LAMP:0,GLOW:0}[m.key]??.14));
 function paintCar(c){
 const lv=liquidLevels(c),lsig=lv?lv.join(','):'';
 const anim=c.fires>0||Math.abs(carVel(c))>.5||c.d.spin||(c.wet&&c.wetT>G.t);
@@ -65,6 +67,12 @@ if(dx&&i+dx>=0&&i+dx<w&&c.mat[k+dx]===m){const q=k+dx;r=c.col[q*3];g=c.col[q*3+1
 if(c.d.spin&&((k/w)|0)<c.d.spin*1.6&&c.d.roles[c.reg[k]]==='ROTOR'&&((k%w)+Math.floor(t*70))%5<2){d[q+3]=0;continue}
 if(GLOWC[m]){const f=.92+.08*Math.sin(t*2.6+k*.9);r=Math.min(255,r*f+60);g=Math.min(255,g*f+45);b=Math.min(255,b*f+25)}
 if(c.sil[k]){if(c.custom){if(!c.occ[c.sil[k]-1]){r*=.26;g*=.3;b*=.36}}else if(c.occ[c.sil[k]-1]){r=CREW[0];g=CREW[1];b=CREW[2]}}
+if(CFG.unitShade){/* form from structure: a pixel with nothing above it is a lit top edge, one with nothing below is an under-shadow.
+   Freshly torn metal therefore shows a bright edge without any new art. */
+const e=CFG.unitShade*(c.custom?.55:1),up=k>=w?c.mat[k-w]:0,dn=k+w<c.n?c.mat[k+w]:0;
+if(!up){const s=1+e*SPEC[m];r*=s;g*=s;b*=s}else if(!dn){const s=1-e*.2;r*=s;g*=s;b*=s}
+else if(SPEC[m]>.2&&k>=2*w&&!c.mat[k-2*w]){const s=1+e*SPEC[m]*.35;r*=s;g*=s;b*=s}
+if(m===M.GLASS){const i=k%w,j=(k/w)|0;if((i+j*2+((t*5)|0)+c.id*7)%29<2){r+=58*e;g+=66*e;b+=70*e}}}
 const hf=c.hp[k]/MAXHP[m];if(hf<.65){const kk=.45+.85*hf;r*=kk;g*=kk;b*=kk}
 if(c.wet&&c.wet[k]>0){const tt=Math.min(1,c.wet[k]/CFG.wetTime)*.38;r*=1-tt;g*=1-tt*.75;b=b*(1-tt*.3)+38*tt}
 const ru=c.rust[k];if(ru>0){const tt=Math.min(1,ru)*.65;r=r*(1-tt)+150*tt;g=g*(1-tt)+68*tt;b=b*(1-tt)+34*tt}
@@ -103,14 +111,19 @@ function renderScene(){
 const ctx=sctx,W=S.W,H=S.H,w=G.world;
 const sx=(Math.random()-.5)*G.shake*CFG.camShake,sy=(Math.random()-.5)*G.shake*CFG.camShake;
 const cx=Math.round(clamp(G.camX+sx,0,Math.max(0,w.W-W-1))),cy=Math.round(clamp(G.camY+sy,0,Math.max(0,w.H-H-1)));G.rcx=cx;G.rcy=cy;
-const tn=G.tint,gr=ctx.createLinearGradient(0,0,0,H*.75);gr.addColorStop(0,'rgb(7,7,12)');gr.addColorStop(1,rgb(sh(tn,.8)));
+const tn=G.tint,gr=ctx.createLinearGradient(0,0,0,H*.8);gr.addColorStop(0,'rgb(6,6,11)');gr.addColorStop(.45,rgb(sh(tn,.34)));gr.addColorStop(.8,rgb(sh(tn,.78)));gr.addColorStop(1,rgb(sh(tn,1.12)));
 ctx.fillStyle=gr;ctx.fillRect(0,0,W,H);
 for(const s of STARS){const b=120+100*Math.sin(G.t*2+s[2]*40);ctx.fillStyle=`rgb(${b},${b},${b*.95})`;ctx.fillRect((s[0]*W*1.3-cx*.02)%W,s[1]*H,1,1)}
-const mx=W*.78,my=H*.2;ctx.fillStyle='rgb(206,196,170)';ctx.beginPath();ctx.arc(mx,my,13,0,7);ctx.fill();
+const mx=W*.78,my=H*.2;if(CFG.haze){const mg=ctx.createRadialGradient(mx,my,10,mx,my,58);mg.addColorStop(0,'rgba(214,200,168,.20)');mg.addColorStop(1,'rgba(214,200,168,0)');ctx.fillStyle=mg;ctx.fillRect(mx-60,my-60,120,120)}ctx.fillStyle='rgb(206,196,170)';ctx.beginPath();ctx.arc(mx,my,13,0,7);ctx.fill();
 ctx.fillStyle='rgb(160,150,128)';ctx.beginPath();ctx.arc(mx-4,my-3,3,0,7);ctx.arc(mx+5,my+4,2.2,0,7);ctx.fill();
 ctx.globalAlpha=.07;ctx.fillStyle='rgb(150,140,120)';for(let i=0;i<5;i++){const x=((i*173+G.t*4-cx*.06)%(W+160))-80;ctx.beginPath();ctx.ellipse(x,H*(.22+i*.07),70,8+i*2,0,0,7);ctx.fill()}ctx.globalAlpha=1;
 ctx.drawImage(w.far,Math.floor(cx*.18),Math.round(cy*.9+30)+LAYER_OFF-30,W,H,0,0,W,H);
+/* aerial perspective (v3.41): a veil of biome-coloured haze sits in front of each background layer, thickest at the horizon,
+   so the far skyline fades back and the train reads as the nearest thing */
+const hazeY=Math.round(T(cx+W/2)-cy),veil=(a0,a1)=>{if(!CFG.haze)return;const y0=Math.max(0,hazeY-150),hg=ctx.createLinearGradient(0,y0,0,hazeY+6),hc=sh(tn,1.05).map(v=>Math.min(255,v|0)).join(',');hg.addColorStop(0,`rgba(${hc},${a0})`);hg.addColorStop(1,`rgba(${hc},${a1})`);ctx.fillStyle=hg;ctx.fillRect(0,y0,W,hazeY+6-y0)};
+veil(0,.34*CFG.haze);
 ctx.drawImage(w.mid,Math.floor(cx*.42),Math.round(cy*.96+10)+LAYER_OFF-10,W,H,0,0,W,H);
+veil(0,.16*CFG.haze);
 ctx.drawImage(w.canvas,cx,cy,W,H,0,0,W,H);
 if(PX.cv&&PX.W===w.W)ctx.drawImage(PX.cv,cx,cy,W,H,0,0,W,H);
 for(const bu of w.buried||[]){if(bu.looted||bu.x<cx-30||bu.x>cx+W+30)continue;
@@ -178,6 +191,11 @@ for(const c of G.train.cars)if(c.bay&&c.bay.winching&&c.bay.unit){const dp=toWor
 let x=p[0]+Math.cos(a)*bl,y=p[1]+Math.sin(a)*bl,vx=Math.cos(a)*CFG.shellSpeed+G.train.v,vy=Math.sin(a)*CFG.shellSpeed;const ready=G.gunCool<=0;
 ctx.fillStyle=ready?'rgba(255,214,140,.85)':'rgba(170,160,140,.5)';
 for(let i=0;i<60;i++){const h=.025;vy+=55*h;x+=vx*h;y+=vy*h;if(solidAt(x,y)){ctx.fillRect(x-cx-1,y-cy-1,3,3);break}if(i%3===0)ctx.fillRect(Math.round(x-cx),Math.round(y-cy),2,2)}}}
+/* drifting ash (v3.41): stateless flecks at three depths, blown by the wind, embers in the lava fields; never drawn below ground */
+if(CFG.ashFlecks){const wind=18+(G.windAmp||.5)*38,lava=biomeAt(cx+W/2).type==='lava';
+for(let i=0;i<CFG.ashFlecks;i++){const dp=.35+hash2(i,91)*.95,span=W+40,fx=((hash2(i,92)*span*3-G.t*wind*dp-cx*dp*.6)%span+span)%span-20,fy=((hash2(i,93)*H*2+G.t*(7+hash2(i,94)*11)*dp+Math.sin(G.t*.9+i)*5)%H+H)%H;
+if(fy>T(cx+clamp(fx,0,W-1))-cy-1)continue;const em=lava&&i%3===0||i%17===0;
+ctx.globalAlpha=(em?.75:.16+.3*dp)*(.7+.3*Math.sin(G.t*3+i));ctx.fillStyle=em?'rgb(255,150,60)':'rgb(176,168,150)';const sz=dp>1?2:1;ctx.fillRect(Math.round(fx),Math.round(fy),sz,sz)}ctx.globalAlpha=1}
 drawLights(ctx,cx,cy,W,H);
 const L=G.train.cars[0],lp=L.pts.lamp;if(lp&&lampAlive(L,lp)&&G.caps.driver){const p=toWorld(L,lp[0]+1,lp[1]);ctx.globalAlpha=.10;ctx.fillStyle='rgb(255,236,180)';ctx.beginPath();ctx.moveTo(p[0]-cx,p[1]-cy);ctx.lineTo(p[0]-cx+90,p[1]-cy-12);ctx.lineTo(p[0]-cx+90,p[1]-cy+22);ctx.fill();ctx.globalAlpha=1}
 }
@@ -201,6 +219,6 @@ if(!gl){const c=view.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(
 gl.viewport(0,0,view.width,view.height);
 gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,scene);
 const cp=CFG.cellPresets[G.cell];
-gl.uniform2f(U.uRes,view.width,view.height);gl.uniform2f(U.uCell,cp[0]*dpr,cp[1]*dpr);gl.uniform1f(U.uTime,G.t);gl.uniform1f(U.uN,CFG.ramp.length);gl.uniform1f(U.uRaw,G.raw?1:0);gl.uniform1f(U.uFlash,G.flash);
+gl.uniform2f(U.uRes,view.width,view.height);gl.uniform2f(U.uCell,cp[0]*dpr,cp[1]*dpr);gl.uniform1f(U.uTime,G.t);gl.uniform1f(U.uN,CFG.ramp.length);gl.uniform1f(U.uRaw,G.raw?1:0);gl.uniform2f(U.uSRes,scene.width,scene.height);gl.uniform4f(U.uFx,CFG.fxBloom,CFG.fxVignette,CFG.fxBevel,CFG.fxGrain);gl.uniform1f(U.uFlash,G.flash);
 gl.drawArrays(gl.TRIANGLES,0,3);
 }

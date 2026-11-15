@@ -8,14 +8,31 @@ function initGL(){
 gl=view.getContext('webgl',{antialias:false,alpha:false});if(!gl)return false;
 const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 const fs=`precision highp float;
-uniform sampler2D uScene,uAtlas;uniform vec2 uRes,uCell;uniform float uTime,uN,uRaw,uFlash;
+uniform sampler2D uScene,uAtlas;uniform vec2 uRes,uCell,uSRes;uniform vec4 uFx;uniform float uTime,uN,uRaw,uFlash;
 float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
 float b2(vec2 a){a=floor(a);return fract(dot(a,vec2(.5,a.y*.75)));}
 float bayer4(vec2 a){return b2(.5*a)*.25+b2(a);}
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 void main(){
 vec2 px=vec2(gl_FragCoord.x,uRes.y-gl_FragCoord.y);
-if(uRaw>.5){gl_FragColor=vec4(texture2D(uScene,px/uRes).rgb,1.);return;}
+if(uRaw>.5){
+/* pixel view (v3.41): every scene pixel stays a crisp square; on top of that —
+   bloom from bright pixels (fire, lamps, glow, moon), a filmic curve with warm highlights / cool shadows,
+   a faint bevel inside each big pixel, vignette and grain. uFx = (bloom, vignette, bevel, grain). */
+vec2 uv=px/uRes,sp=uv*uSRes,tx=1./uSRes;
+vec3 c=texture2D(uScene,(floor(sp)+.5)*tx).rgb;
+vec3 bl=vec3(0.);
+for(int i=0;i<16;i++){float fi=float(i),a=fi*2.39996,r=1.6+fi*.5;vec3 s=texture2D(uScene,(sp+vec2(cos(a),sin(a))*r)*tx).rgb;
+bl+=s*smoothstep(.62,1.,max(max(s.r,s.g),s.b))*(1.-fi/22.);}
+c+=bl*(uFx.x/7.);
+vec2 f=fract(sp);float tpx=uRes.x/uSRes.x,bw=clamp((tpx-2.5)/3.,0.,1.)*uFx.z;
+c*=1.+bw*((1.-step(.22,f.y))+(1.-step(.22,f.x)))-bw*1.2*(step(.8,f.y)+step(.8,f.x));
+float L=lum(c);c=mix(vec3(L),c,1.14);
+c+=L*vec3(.030,.012,-.020)+(1.-L)*vec3(-.006,.001,.016)*step(.02,L);
+c=c*1.2/(1.+c*.2);
+vec2 q=(uv-.5)*vec2(1.,.86);c*=1.-uFx.y*smoothstep(.28,.82,length(q));
+c+=(hash(px+fract(uTime)*71.)-.5)*uFx.w;
+gl_FragColor=vec4(c+uFlash*vec3(.22,.15,.08),1.);return;}
 vec2 cell=floor(px/uCell),cc=(cell+.5)*uCell,o=uCell*.27;
 vec3 s0=texture2D(uScene,(cc+vec2(-o.x,-o.y))/uRes).rgb,s1=texture2D(uScene,(cc+vec2(o.x,-o.y))/uRes).rgb,
 s2=texture2D(uScene,(cc+vec2(-o.x,o.y))/uRes).rgb,s3=texture2D(uScene,(cc+vec2(o.x,o.y))/uRes).rgb;
@@ -37,7 +54,7 @@ const sh2=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShad
 prog=gl.createProgram();gl.attachShader(prog,sh2(gl.VERTEX_SHADER,vs));gl.attachShader(prog,sh2(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);gl.useProgram(prog);
 const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
 const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-for(const n of ['uScene','uAtlas','uRes','uCell','uTime','uN','uRaw','uFlash'])U[n]=gl.getUniformLocation(prog,n);
+for(const n of ['uScene','uAtlas','uRes','uCell','uSRes','uFx','uTime','uN','uRaw','uFlash'])U[n]=gl.getUniformLocation(prog,n);
 const mk=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t};
 sceneTex=mk();atlasTex=mk();gl.bindTexture(gl.TEXTURE_2D,sceneTex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);buildAtlas();
 gl.uniform1i(U.uScene,0);gl.uniform1i(U.uAtlas,1);

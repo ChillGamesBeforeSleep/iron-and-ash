@@ -62,6 +62,8 @@ skyExtra: 240, flightZoom: 356, highAlt: 165, dangerAlt: 290, highAirRate: .018,
 railRecallReach: 44, crewAutoRepair: 1, crewRepairEvery: 4.5, copilotReload: .75,
 landSafeVy: 18, landCrashVy: 48, landMaxPitch: .38, landScrapeDmg: .28, landBrake: 2.2, secMaxDmgPx: 50,
 camShake: 0, pxCarHops: 4, pxMaxAge: 5, calmSimStep: .1, perfGovernor: 1,
+/* look & feel (v3.41): pixel-view post-processing and unit shading — all 0 = the old flat look */
+fxBloom: .9, fxVignette: .4, fxBevel: .05, fxGrain: .028, unitShade: 1, ashFlecks: 70, haze: 1,
 camPad: 40, camVehicle: 320,
 wind: -14, shedMul: 1,
 fireSpread: 8, flamMul: 1, burnMul: 1, rustMul: 1, dmgMul: 1, diffPerLeg: .45,
