@@ -1,0 +1,6 @@
+---
+description: Iron & Ash project rules
+alwaysApply: true
+---
+Follow CLAUDE.md in the repo root — it is the single source of rules for AI agents in this project.
+Read docs/ARCHITECTURE.md before editing code. Edit only src/; run `npm run build` before finishing.

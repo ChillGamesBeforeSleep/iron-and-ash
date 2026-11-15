@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "iron-and-ash",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/dev.mjs", "5173"],
+      "port": 5173
+    }
+  ]
+}

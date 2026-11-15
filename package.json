@@ -1,0 +1,12 @@
+{
+  "name": "iron-and-ash",
+  "private": true,
+  "type": "module",
+  "description": "Iron & Ash — post-apocalyptic armored-train exploration game on a pixel-physics engine",
+  "scripts": {
+    "dev": "node tools/dev.mjs",
+    "build": "node tools/build.mjs",
+    "release": "node tools/build.mjs --bump --release",
+    "check": "node tools/build.mjs"
+  }
+}

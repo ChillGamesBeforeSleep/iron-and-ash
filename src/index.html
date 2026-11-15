@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Iron &amp; Ash v{{VERSION}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=VT323&display=swap" rel="stylesheet">
+<style>
+/*@CSS*/
+</style>
+</head>
+<body>
+<canvas id="view" aria-label="Game view"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="top" class="hud">
+<div class="box"><div id="res"></div><div id="status"></div></div>
+<div class="box" id="zonebox"><div id="zone">WASTELAND</div><div id="zonesub"></div><canvas id="map" height="30" aria-label="Route map"></canvas><div id="legtxt"></div></div>
+</div>
+<div id="viewbar" class="hud box" role="toolbar" aria-label="View">
+<button type="button" class="vb" id="vbAscii" aria-pressed="true" title="Toggle the ASCII effect (backtick key)">ASCII ON</button>
+<span class="vl">GLYPH</span><button type="button" class="vb" id="vbGm" title="Smaller glyphs ([)" aria-label="Smaller glyphs">−</button><b id="vbG">5×8</b><button type="button" class="vb" id="vbGp" title="Bigger glyphs (])" aria-label="Bigger glyphs">+</button>
+<span class="vl">ZOOM</span><button type="button" class="vb" id="vbZm" title="Zoom out (-)" aria-label="Zoom out">−</button><b id="vbZ" title="Back to automatic zoom (Z)">AUTO</b><button type="button" class="vb" id="vbZp" title="Zoom in (+)" aria-label="Zoom in">+</button>
+<button type="button" class="vb" id="vbDev" aria-pressed="false" title="Playtest panel (F2)" style="margin-left:8px">PLAYTEST</button>
+</div>
+<div id="crew" class="hud box" aria-label="Crew"></div>
+<div id="log" class="hud"></div>
+<div id="prompt" class="hud"></div>
+<div id="keys" class="hud"></div>
+<div id="trainbar" class="hud"></div>
+<div id="overlay"><div class="panel" id="panel"></div></div>
+<aside id="dev" hidden aria-label="Playtest panel">
+<header><div><h2>v{{VERSION}} · tools</h2><h1>PLAYTEST</h1></div><button class="ub2" id="devClose" type="button">Close</button></header>
+<div id="devStats" class="dstats"></div>
+<section><h3>Test controls</h3>
+<div class="row"><span class="dl">Speed</span><span class="seg" id="devTs"><button type="button" data-ts=".25">¼×</button><button type="button" data-ts=".5">½×</button><button type="button" data-ts="1" aria-pressed="true">1×</button><button type="button" data-ts="2">2×</button></span></div>
+<div class="row" style="margin-top:6px"><label class="chk"><input type="checkbox" id="devGod"> No damage</label><label class="chk"><input type="checkbox" id="devCalm"> No hazards</label><label class="chk"><input type="checkbox" id="devAuto"> Autopilot</label></div>
+<div class="row" style="margin-top:6px"><label class="dl" for="devBiome">Force biome</label><select id="devBiome" class="dsel"><option value="">Auto (map)</option><option value="waste">Wasteland</option><option value="city">Dead city</option><option value="canyon">Rockfall canyon</option><option value="acid">Acid rain</option><option value="lava">Lava fields</option></select></div>
+</section>
+<section><h3>Spawn</h3><div class="dgrid">
+<button class="ub2" type="button" data-sp="drone">Drone</button><button class="ub2" type="button" data-sp="bomber">Bomber</button><button class="ub2" type="button" data-sp="plane">Attack plane</button><button class="ub2" type="button" data-sp="heli">Gunship</button><button class="ub2" type="button" data-sp="pxdrone">Pixel drone</button><button class="ub2" type="button" data-sp="tank">Raider tank</button><button class="ub2" type="button" data-sp="driller">+ Excavator rig</button><button class="ub2" type="button" data-sp="rocks">Rockfall ×5</button>
+<button class="ub2" type="button" data-sp="obstacle">Obstacle ahead</button><button class="ub2" type="button" data-sp="fire">Fire on a car</button><button class="ub2" type="button" data-sp="blast">Blast a car</button>
+<button class="ub2" type="button" data-sp="res">+10 of each</button><button class="ub2" type="button" data-sp="crew">+1 crew</button><button class="ub2" type="button" data-sp="fix">Repair all</button>
+<button class="ub2" type="button" data-sp="station">Jump to station</button><button class="ub2" type="button" data-sp="ahead">Skip 500 m</button><button class="ub2" type="button" data-sp="wagon">+ random wagon</button>
+</div></section>
+<section><h3>Balance <small id="devChanged"></small></h3><div id="devKnobs"></div>
+<div class="row" style="margin-top:8px"><button class="ub2" type="button" id="devResetAll">Reset all to default</button></div></section>
+<section><h3>Match report</h3>
+<p class="dp">Records events, a snapshot every 10 s, damage by source and your balance changes. Copy it and paste it to Claude after a session.</p>
+<div class="row"><button class="go" type="button" id="devCopy" style="font-size:17px;padding:4px 12px">COPY REPORT</button><button class="ub2" type="button" id="devClear">Clear log</button></div>
+<textarea id="devOut" aria-label="Report text" hidden></textarea>
+<div id="devTail" class="dtail"></div>
+</section>
+</aside>
+<aside id="ws" hidden aria-label="Unit Forge">
+<header><div><h2>v{{VERSION}} · tools</h2><h1>UNIT FORGE</h1></div><button class="ub2" id="wsBack" type="button">← Back</button></header>
+<div class="row fgtop"><div class="fld"><label for="fgUnit">Unit</label><select id="fgUnit"></select></div><button class="ub2" id="fgNew" type="button">+ New unit</button></div>
+<ol class="steps" id="fgSteps" aria-label="Steps"></ol>
+<section class="tut" id="fgTut" aria-live="polite"></section>
+<div id="fgBody"></div>
+<section id="fgViewSec">
+<h3><span id="fgViewTitle">Pixel view</span> <span class="seg" id="wsView"><button type="button" data-v="look">Texture</button><button type="button" data-v="both" aria-pressed="true">Both</button><button type="button" data-v="mat">Material</button></span></h3>
+<canvas id="wsZoom"></canvas>
+<p class="note" id="fgViewHint"></p>
+</section>
+<section><h3>Checklist <small id="fgCount"></small></h3><ul class="rep" id="wsRep"></ul></section>
+<div class="fgnav"><button class="ub2" id="fgPrev" type="button">← Back</button><button class="go" id="fgNext" type="button">NEXT →</button></div>
+<input type="file" id="fgImport" accept="application/json,.json" hidden>
+</aside>
+<script>
+(()=>{
+'use strict';
+/*@JS*/
+})();
+</script>
+</body>
+</html>

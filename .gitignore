@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+dist/
+# local history and large art sources stay on disk, not in git
+archive/
+art/reference/
+*.psd
+# never commit keys
+.env
+.env.*
