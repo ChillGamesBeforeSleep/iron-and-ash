@@ -33,7 +33,10 @@ return`<div class="oc"><b>${i}. ${c.d.name}</b><span>${pct}%${fragile&&i<=2?' ·
 <div class="ob"><button class="ub" data-act="mv" data-c="${i}" data-d="-1" ${i<=1?'disabled':''} title="Move toward the front" aria-label="Move ${c.d.name} toward the front">◀</button><button class="ub" data-act="mv" data-c="${i}" data-d="1" ${i>=cars.length-1?'disabled':''} title="Move toward the rear" aria-label="Move ${c.d.name} toward the rear">▶</button>
 <button class="ub" data-act="scrapcar" data-c="${i}" title="Remove this car for scrap">${conf?`Confirm ${val}`:`Scrap ${val}`}</button></div></div>${i<cars.length-1?'<span class="oarrow">→</span>':''}`}).join('');
 }
-function renderStation(){
+/* measure the train bar so the station panel can stop exactly above it, whatever the window size or train length */
+function stationLayout(){const tb=$('trainbar');if(tb)document.documentElement.style.setProperty('--tb',Math.max(96,tb.offsetHeight+26)+'px')}
+addEventListener('resize',()=>{if(document.body.classList.contains('station'))stationLayout()});
+function renderStation(){requestAnimationFrame(stationLayout);setTimeout(stationLayout,160);
 const R=G.res,C=G.caps,T=G.tel;
 let rows='';
 G.train.cars.forEach((c,ci)=>{let b='';

@@ -12,7 +12,8 @@ if(e.code==='KeyZ'){zoomAuto();return}
 if(e.code==='F2'){e.preventDefault();toggleDev();return}
 if(e.code==='Equal'||e.code==='NumpadAdd'){zoomBy(.85);return}
 if(e.code==='Minus'||e.code==='NumpadSubtract'){zoomBy(1/.85);return}
-if(e.code==='KeyC'){G.crewHidden=!G.crewHidden;G.crewHtml='';return}
+/* [C]: in the Unit Forge and its test range it clears the whole screen of panels (again to bring them back); in a run it toggles the crew panel, Shift+C clears everything */
+if(e.code==='KeyC'){if(G.state==='workshop'||G.sim||e.shiftKey||document.body.classList.contains('nohud')){document.body.classList.toggle('nohud');return}G.crewHidden=!G.crewHidden;G.crewHtml='';return}
 if(e.code==='KeyM'){SND.on=!SND.on;if(SND.master)SND.master.gain.setTargetAtTime(SND.on?.6:0,SND.ctx.currentTime,.05);log(SND.on?'Sound on':'Sound off','');return}
 if(G.state==='workshop'){if(e.code==='Escape')hideWorkshop();return}
 if(e.code==='Enter'){if(document.activeElement&&document.activeElement.tagName==='BUTTON')return;if(G.state==='title'){const d=readSave();if(d)loadGame(d);else startRun()}else if(G.state==='leg'){G.leg++;startLeg()}else if(G.state==='over'&&!overlay.hidden)startRun();return}

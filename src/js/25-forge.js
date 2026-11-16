@@ -418,7 +418,7 @@ if(!FG.d){FG.d=await draftFrom('loco','loco');FG.d.name='';FG.step=0}
 fgRebuild();
 }
 function hideWorkshop(){
-$('ws').hidden=true;document.body.classList.remove('ws');G.parts=[];G.chunks=[];FG.pick=null;
+$('ws').hidden=true;document.body.classList.remove('ws');document.body.classList.remove('nohud');G.parts=[];G.chunks=[];FG.pick=null;
 G.train=newTrain();layout(G.train.cars,G.train.x);G.all=G.train.cars.slice();computeCaps();
 G.camX=clamp(G.train.x-S.W*.6,0,G.world.W-S.W-1);G.camY=clamp(G.train.cars[0].ay-S.H*.66,0,G.world.H-S.H-1);showTitle();
 }

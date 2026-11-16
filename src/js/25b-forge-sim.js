@@ -54,6 +54,7 @@ ${air?`<div class="sb-row"><button class="ub2" type="button" data-sim="solo">Sol
 <p class="sb-note">White: height above ground · orange: pitch · blue: airspeed. Pilot / From the deck: [W] accelerate · [S] slow down · [A] nose up · [D] nose down · [R] roll · [J] eject · [Tab] switch.</p>`:''}
 <div class="sb-grid">${SIM_SPAWNS.map(([k,t])=>`<button class="ub2" type="button" data-sp2="${k}">${t}</button>`).join('')}</div>
 <label class="chk"><input type="checkbox" id="simHaz"> Random hazards on</label>
+<p class="sb-note">[C] hides every panel · mouse wheel or +/− zooms · Z back to auto zoom</p>
 <div id="simStat" class="sb-stat"></div>`;
 document.body.appendChild(b);
 b.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;

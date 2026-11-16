@@ -7,6 +7,8 @@ function log(msg,cls){if(G.state==='play'&&G.train&&G.train.cars[0])G.mlog.push(
 function intColor(v){const c=v<.5?[208,65,44]:v<.75?[220,165,74]:[159,176,124];const k=.55+.45*Math.min(1,v);return `rgb(${c[0]*k|0},${c[1]*k|0},${c[2]*k|0})`}
 function buildTrainHUD(){
 const bar=$('trainbar');bar.innerHTML='';
+/* v3.43: section cells shrink so a long train still fits the window instead of running off both edges */
+{const n=Math.max(1,G.train.cars.length+(G.loose||[]).reduce((a,g)=>a+g.cars.length,0)),room=innerWidth-24-(document.body.classList.contains('dev')?Math.min(390,innerWidth):0);bar.style.setProperty('--cw',Math.max(20,Math.min(36,Math.floor((room/n-19)/4)))+'px')}
 if(G.piloting&&(G.vehicles||[]).includes(G.piloting)){
 const c=G.piloting,rc=c.regCount||3,wrap=document.createElement('div');wrap.className='cars';
 const el=document.createElement('div');el.className='car';

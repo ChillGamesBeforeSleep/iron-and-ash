@@ -4,7 +4,7 @@
 const GAME_VERSION='{{VERSION}}';
 const CFG = {
 cellPresets: [[2,4],[3,5],[4,6],[4,7],[5,8],[6,10],[8,13],[10,16]],
-zoomMin: 110, zoomMax: 436, zoomAutoMin: 230, zoomIdle: 4, zoomReturn: .6, lookAhead: 2.6,
+zoomMin: 110, zoomMax: 680, zoomAutoMin: 230, zoomIdle: 4, zoomReturn: .6, lookAhead: 2.6,
 ramp: " .`,:;-~=+*xo#%@",
 maxParticles: 1600,
 maxChunks: 70, chunkLife: 30, wreckObstacle: 90,
@@ -17,7 +17,7 @@ repairPerScrap: 0.5,
 legLen: 4800, legGrow: 500,
 coupleSpeed: 26,
 cap: { base:{scrap:4, equip:2, fuel:10, water:12},
-FUEL_LOCO:40, FUEL:30, SEATS:2, CAB:2, AMMO:30, SCRAP:10, STORE_SCRAP:6, STORE_EQUIP:2 },
+FUEL_LOCO:40, FUEL:30, SEATS:4, CAB:2, AMMO:30, SCRAP:10, STORE_SCRAP:6, STORE_EQUIP:2 },
 droneRate: 0.012, droneCity: 2.5, stopMult: 1.8, rockRate: 0.2, emberRate: 6, acidRust: 0.03, wear: 0.05,
 recruitEvery: 70,
 forageTime: 10,

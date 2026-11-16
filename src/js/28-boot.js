@@ -2,7 +2,7 @@
    BOOT
    ===================================================================== */
 try{initGL()}catch(err){console.error(err);gl=null}
-addEventListener('resize',resize);resize();
+addEventListener('resize',()=>{resize();G.hudSig=''});resize();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(gl)buildAtlas()});
 G.train=newTrain();genWorld(1);layout(G.train.cars,G.train.x);G.all=G.train.cars.slice();computeCaps();
 G.camX=clamp(G.train.x-S.W*.6,0,G.world.W-S.W-1);G.camY=clamp(G.train.cars[0].ay-S.H*.66,0,G.world.H-S.H-1);

@@ -29,12 +29,12 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--bone);overflow:h
 #prompt{bottom:calc(env(safe-area-inset-bottom,0px) + 112px);left:50%;transform:translateX(-50%);font:22px/1 var(--disp);letter-spacing:.05em;text-align:center;text-shadow:0 0 6px #000,0 0 2px #000;white-space:nowrap}
 #prompt small{display:block;font:11px var(--mono);color:var(--dim);margin-top:3px}
 #trainbar{bottom:calc(env(safe-area-inset-bottom,0px) + 10px);left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;gap:6px;justify-content:center;flex-wrap:wrap-reverse;pointer-events:none}
-.cars{display:flex;flex-direction:row-reverse;gap:5px;pointer-events:auto}
+.cars{display:flex;flex-direction:row-reverse;flex-wrap:wrap-reverse;justify-content:center;max-width:100%;gap:5px;pointer-events:auto}
 .car{background:var(--panel);border:1px solid var(--line);padding:4px 5px 5px}
 .car.loose{opacity:.55;border-style:dashed}
 .car h4{margin:0 0 3px;font:600 9.5px var(--mono);letter-spacing:.12em;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
 .car h4 em{font-style:normal;color:var(--bone);font-variant-numeric:tabular-nums}
-.grid{display:grid;grid-template-columns:repeat(4,36px);grid-template-rows:repeat(2,24px);gap:2px}
+.grid{display:grid;grid-template-columns:repeat(4,var(--cw,36px));grid-template-rows:repeat(2,24px);gap:2px}
 .grid.grid3{grid-template-columns:repeat(3,56px);grid-template-rows:28px}
 .cell{border:0;margin:0;font:600 8.5px/1.05 var(--mono);color:#0d0c0b;padding:2px 3px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;letter-spacing:.03em}
 .cell:focus-visible{outline:1px solid var(--bone);outline-offset:1px}
@@ -61,7 +61,10 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--bone);overflow:h
 .cx-meta{font-size:10.5px;color:#bdb39c;line-height:1.45}
 .cx-tags{display:flex;flex-wrap:wrap;gap:3px}
 .cx-tags span{font:600 9.5px var(--mono);padding:1px 5px;background:rgba(216,205,180,.09);border:1px solid var(--line);color:var(--bone)}
-body.station #overlay{padding-bottom:128px;place-items:start center}
+/* station (v3.43): the panel ends above the train bar instead of sliding under it, and play-only HUD is put away */
+body.station #overlay{padding-bottom:var(--tb,128px);place-items:start center}
+body.station .panel{box-sizing:border-box;max-height:calc(100vh - 16px - var(--tb,128px))}
+body.station #keys,body.station #prompt,body.station #viewbar,body.station #log{display:none!important}
 body.station #trainbar{z-index:6}
 .station{display:grid;grid-template-columns:1.25fr 1fr;gap:22px}
 .station h3{font:600 10px var(--mono);letter-spacing:.18em;color:var(--dim);margin:0 0 8px;text-transform:uppercase}
@@ -181,7 +184,7 @@ body.title #viewbar{top:calc(env(safe-area-inset-top,0px) + 12px)}
 .mini div{font:600 9px/1.2 var(--mono);color:#0d0c0b;padding:3px 4px}
 #wsFile{width:100%;min-height:70px;font:10px var(--mono);background:#141312;color:var(--bone);border:1px solid var(--line);resize:vertical}
 body.ws #top,body.ws #trainbar,body.ws #keys{display:none!important}
-@media (max-width:760px){#keys{display:none}.grid{grid-template-columns:repeat(4,28px)}#zonebox{min-width:0}}
+@media (max-width:760px){#keys{display:none}#zonebox{min-width:0}}
 @media (prefers-reduced-motion:reduce){.cell.fire{animation:none}}
 .fgtop{align-items:flex-end}
 .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
@@ -277,3 +280,6 @@ body.dev #simbar{right:calc(min(390px,100vw) + 12px)}
 @media (max-width:760px){#simbar{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 110px);max-height:45vh}}
 .cx-h{font:600 13px var(--mono);color:var(--bone);letter-spacing:.08em;margin:14px 0 8px;text-transform:uppercase}
 .cx-h small{font:10px var(--mono);color:var(--dim);letter-spacing:0;text-transform:none;margin-left:8px}
+/* [C] in the Forge / test range, Shift+C in a run: nothing but the world */
+body.nohud .hud,body.nohud #ws,body.nohud #dev,body.nohud #simbar{display:none!important}
+body.nohud::after{content:'[C] show panels';position:fixed;right:12px;bottom:10px;font:11px var(--mono);color:var(--dim);opacity:.55;pointer-events:none;z-index:50}

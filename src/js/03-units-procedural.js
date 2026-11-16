@@ -14,7 +14,7 @@ WHEEL:   {short:'TRAC',help:'Traction from the WHEEL and RUBBER pixels in this s
 on:(cap,lv,c,r)=>{cap.traction+=.25*c.as.regGrip[r]/ledgerRef().grip}},
 AXLE:    {short:'AXLE',help:'Broken axle drags the train.',up:'Armoured axle',
 off:(cap)=>{cap.axleDrag+=1.4}},
-SEATS:   {short:'SEAT',help:'Seats 2 crew (a seat box). Injured crew heal only with someone sharing their box. Extra crew stand inside.',up:'+1 seat; upgraded seats slowly recruit survivors',
+SEATS:   {short:'SEAT',help:'Seats 4 crew (a seat box). Injured crew heal only with someone sharing their box. Extra crew stand inside.',up:'+1 seat; upgraded seats slowly recruit survivors',
 on:(cap,lv,c,r,K)=>{cap.crew+=K.SEATS+lv;cap.seatLvl+=lv}},
 AMMO:    {short:'AMMO',help:'Magazine: every AMMO pixel in the unit holds rounds. Explodes if destroyed loaded.',up:'+50% ammo per pixel in this section'},
 CANNON:  {short:'GUN', help:'Turret. Click to fire.',up:'−20% reload, bigger blast',
