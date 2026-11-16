@@ -73,9 +73,10 @@ if(!dead&&solidAt(s.x,s.y)){G.explQ.push({x:s.x,y:s.y,r:8,p:90,ign:.2,cause:'fri
 if(Math.random()<.5)spawn(s.x,s.y,0,0,.25,[200,190,160],1,'smoke');
 } else if(s.kind==='rpg'||s.kind==='seeker'){
 if(Math.random()<.75)spawn(s.x,s.y,-s.vx*.15+rand(-8,8),-s.vy*.15+rand(-8,8),.3,s.kind==='seeker'?[255,110,180]:[255,170,80],1.5,'smoke');
-for(const d of G.drones)if(!d.dead&&Math.hypot(d.x-s.x,d.y-s.y)<6.5){G.explQ.push({x:s.x,y:s.y,r:s.kind==='seeker'?9:8.5,p:s.kind==='seeker'?150:135,ign:.45,cause:s.why||'rocket'});dead=true;break}
-if(!dead&&s.age>.06){const hv=carAtPoint(s.x,s.y);if(hv&&hv[0].enemy){G.explQ.push({x:s.x,y:s.y,r:s.kind==='seeker'?9:8.5,p:s.kind==='seeker'?150:135,ign:.5,cause:s.why||'rocket'});dead=true;continue}}
-if(!dead&&(hitRaiders(s.x,s.y,3,s.dmg||95,s.why||'rocket')||solidAt(s.x,s.y)||structAt(s.x,s.y))){G.explQ.push({x:s.x,y:s.y,r:s.kind==='seeker'?9:8.5,p:s.kind==='seeker'?145:130,ign:.45,cause:s.why||'rocket'});dead=true}
+const foe=s.src==='raider';/* v3.43: a rocket fired BY the enemy explodes on your units, not on theirs */
+if(!foe)for(const d of G.drones)if(!d.dead&&Math.hypot(d.x-s.x,d.y-s.y)<6.5){G.explQ.push({x:s.x,y:s.y,r:s.kind==='seeker'?9:8.5,p:s.kind==='seeker'?150:135,ign:.45,cause:s.why||'rocket'});dead=true;break}
+if(!dead&&s.age>.06){const hv=carAtPoint(s.x,s.y);if(hv&&(foe?!hv[0].enemy:hv[0].enemy)){G.explQ.push({x:s.x,y:s.y,r:s.rad||(s.kind==='seeker'?9:8.5),p:s.pow||(s.kind==='seeker'?150:135),ign:.5,cause:s.why||'rocket'});dead=true;continue}}
+if(!dead&&((!foe&&hitRaiders(s.x,s.y,3,s.dmg||95,s.why||'rocket'))||(foe&&hitWalker(s.x,s.y,2.5,60,'a raider rocket'))||solidAt(s.x,s.y)||structAt(s.x,s.y))){G.explQ.push({x:s.x,y:s.y,r:s.rad||(s.kind==='seeker'?9:8.5),p:s.pow||(s.kind==='seeker'?145:130),ign:.45,cause:s.why||'rocket'});dead=true}
 } else if(s.kind==='grenade'){
 if(hitRaiders(s.x,s.y,2.5,25,'a grenade')||solidAt(s.x,s.y)||(s.age>.1&&structAt(s.x,s.y))){G.explQ.push({x:s.x,y:s.y,r:6.5,p:105,ign:.25,cause:'grenade'});dead=true}
 } else if(s.kind==='molotov'){
@@ -92,8 +93,8 @@ const hb0=carAtPoint(s.x,s.y,true),hb=hb0&&hb0[0]===s.own?null:hb0;if(hb&&ricoch
 const h2=carAtPoint(s.x,s.y,true);
 if(h2&&ricochet(s,h2,h)){}
 else if(h2){const m0=h2[0].mat[h2[1]];if(FLAM[m0]>=.5&&Math.random()<CFG.shotIgnite*FLAM[m0]){const c=h2[0],k=h2[1];c.fire[k]=Math.max(c.fire[k],.7);for(const q of[k-1,k+1,k-c.w,k+c.w])if(q>=0&&q<c.n&&c.mat[q]&&FLAM[c.mat[q]]>0)c.fire[q]=Math.max(c.fire[q],.5)}
-sfx('tink',1,s.x);G.cause=s.src==='raider'?'raider fire':s.src==='plane'?'plane gunfire':s.src==='heli'?'gunship fire':'drone gunfire';damageCircle(s.x,s.y,s.src==='raider'?1.2:1.6,s.src==='raider'?CFG.raiderCarDmg:62,.07,s.vx*.2,s.vy*.2);spark(s.x,s.y,-s.vx*.2+rand(-30,30),rand(-50,-10),.3,[255,220,150],1);dead=true}
-else if(hitWalker(s.x,s.y,1.4,17,s.src==='raider'?'raider fire':'drone fire')){dead=true}
+sfx('tink',1,s.x);G.cause=s.why||(s.src==='raider'?'raider fire':s.src==='plane'?'plane gunfire':s.src==='heli'?'gunship fire':'drone gunfire');damageCircle(s.x,s.y,s.rad||(s.src==='raider'?1.2:1.6),s.dmg||(s.src==='raider'?CFG.raiderCarDmg:62),.07,s.vx*.2,s.vy*.2);spark(s.x,s.y,-s.vx*.2+rand(-30,30),rand(-50,-10),.3,[255,220,150],1);dead=true}
+else if(hitWalker(s.x,s.y,1.4,s.wdmg||17,s.why||(s.src==='raider'?'raider fire':'drone fire'))){dead=true}
 else if(structAt(s.x,s.y)&&Math.random()<.5){const kk=Math.floor(s.y)*PX.W+Math.floor(s.x);pxKick(kk,s.vx*.3,-rand(10,50),3);dead=true}
 else if(solidAt(s.x,s.y)){const kk=Math.floor(s.y)*PX.W+Math.floor(s.x);if(PX.cells.has(kk))pxKick(kk,s.vx*.35,-rand(30,80),0);spark(s.x,s.y,rand(-20,20),rand(-40,-10),.3,[180,170,150],1);dead=true}
 }

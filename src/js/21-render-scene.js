@@ -172,7 +172,10 @@ drawBody(ctx,m,m.x,cx,cy,invGoods(m)?'loot':wat?'water':false);
 if(!insideVisible(m.x+.5,m.gy-6))continue;
 if(m.throwT>0){m.throwT-=1/60;ctx.fillStyle='rgb(110,170,240)';ctx.fillRect(Math.round(m.x)-cx+(m.dir>0?2:-2),Math.round(m.gy)-cy-9,2,2)}
 if(m.task&&m.task.kind==='guard'&&has(m,'gun')){ctx.fillStyle='rgb(60,56,52)';ctx.fillRect(Math.round(m.x)-cx+(m.dir>0?2:-2),Math.round(m.gy)-cy-5,m.dir>0?2:-2,1)}}
-if(G.raiders)for(const r of G.raiders)if(r.alive&&r.x>cx-10&&r.x<cx+W+10){drawBody(ctx,r,r.x,cx,cy,false,RAIDER_PAL);ctx.fillStyle='rgb(60,56,52)';const gx=Math.round(r.x)-cx+(r.dir>0?2:-2),gy=Math.round(groundY(r.x))-cy-5;ctx.fillRect(gx,gy,r.dir>0?2:-2,1)}
+if(G.raiders)for(const r of G.raiders)if(r.alive&&r.x>cx-10&&r.x<cx+W+10){drawBody(ctx,r,r.x,cx,cy,false,RAIDER_PAL);const gx=Math.round(r.x)-cx+(r.dir>0?2:-2),gy=Math.round(groundY(r.x))-cy-5,dd=r.dir>0?1:-1;
+if(r.kind==='rpg'){ctx.fillStyle='rgb(74,92,58)';ctx.fillRect(gx-dd*3,gy-2,dd*7,2);ctx.fillStyle='rgb(196,120,60)';ctx.fillRect(gx+dd*4,gy-2,dd,2)}
+else if(r.kind==='sniper'){ctx.fillStyle='rgb(48,46,44)';ctx.fillRect(gx,gy,dd*6,1);if(Math.sin(G.t*5+r.ph)>.92){ctx.fillStyle='rgb(200,250,240)';ctx.fillRect(gx+dd*2,gy-1,1,1)}}
+else{ctx.fillStyle='rgb(60,56,52)';ctx.fillRect(gx,gy,r.dir>0?2:-2,1)}}
 for(const d of G.drones){const x=Math.round(d.x-cx),y=Math.round(d.y-cy),b=d.bomber;
 ctx.fillStyle=d.dead?'rgb(82,52,36)':'rgb(58,56,50)';ctx.fillRect(x-(b?6:4),y-1,b?13:9,2);
 ctx.fillStyle=d.dead?'rgb(96,58,38)':'rgb(84,78,68)';ctx.fillRect(x-(b?4:3),y-2,b?9:7,b?4:3);
