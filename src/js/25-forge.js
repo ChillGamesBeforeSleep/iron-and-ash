@@ -220,6 +220,7 @@ return`<section><h3>Type</h3><div class="seg2 seg5" id="fgBase">${Object.entries
 <div class="fld" style="max-width:90px"><label for="fgMass">Mass</label><input id="fgMass" type="number" step="0.05" min="0.2" max="4" value="${d.spec.mass}"></div></section>
 <section><div class="fld"><label for="fgFrom">Start from</label><select id="fgFrom"><option value="">Blank — I will upload my own art</option>${src.map(([v,t])=>`<option value="${v}" ${v===d.from?'selected':''}>${t}</option>`).join('')}</select></div>
 <p class="note">Starting from a unit copies its art, sections, wheels and points. Change anything afterwards.</p></section>
+${blocksHTML()}
 <section><h3>Templates</h3><div class="row"><button class="ub2" id="fgTpl" type="button">Download templates</button></div><p class="note">guides.png (section grid, wheel circles, couplers — use it as a top layer) · example texture + material from “Start from” · palette.png with the exact material colours.</p></section>`},
 images:()=>{const d=FG.d,S=baseSize(d.base);return`<section><h3>Files <small>${S.w} × ${S.h} px, both</small></h3><div class="drops">
 <label class="drop" id="dropLook"><b>TEXTURE PNG</b><span id="nmLook">${d.lookName||'Drop or click to choose'}</span><canvas id="thLook" style="aspect-ratio:${S.w}/${S.h}"></canvas><input type="file" id="inLook" accept="image/png"></label>
@@ -446,6 +447,7 @@ if(t.dataset.fxdel!==undefined){d.spec.effects.splice(+t.dataset.fxdel,1);FG.pic
 if(t.id==='fgFxAdd'){const fx=d.spec.effects;if(fx.length>=EFX_MAX[d.base])return;const S=baseSize(d.base),def=isAirBase(d.base)?'exhaust':d.base==='loco'?'smoke':'lantern',T=EFX[def];
 fx.push({t:def,x:Math.round(S.w/2),y:Math.round(S.split/2),k:1,a:T.a||0,tr:T.trig});FG.pickFx=fx.length-1;d.dirty=true;fgRebuild(true);return}
 if(t.dataset.wpn){FG.weapon=t.dataset.wpn;fgRender();return}
+if(t.id==='fgAsm'){await assembleFromForm();return}
 if(t.id==='fgSim'){startSim();return}
 if(t.id==='fgTpl'){downloadTemplates();return}
 if(t.id==='fgExample'){const src=d.from||(d.base==='loco'?'loco':'cargo');if(BLUEPRINTS[src]){const nd=await draftFrom(src);d.look=nd.look;d.mat=nd.mat;d.lookURL=nd.lookURL;d.matURL=nd.matURL}else Object.assign(d,builtinArt(src));d.lookName=`example (${TYPE_LABEL[src]})`;d.matName='example material';autoWheelsD(d,true);d.dirty=true;fgRebuild();return}
