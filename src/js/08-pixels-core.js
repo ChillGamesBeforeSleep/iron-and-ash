@@ -23,7 +23,7 @@ const lay=groundLayerAt(x,y);if(!lay)continue;
 const resist=dep<2?135:dep<5?65:dep<11?80:95;
 if(!digging&&power*(1-d/(R*1.15))<resist*.35)continue;
 PX.dug[k]=1;carved++;
-if(wctx){wctx.fillStyle=dep<2?'rgb(28,26,25)':'rgb(18,16,15)';wctx.fillRect(x,y,1,1)}
+if(wctx){wctx.fillStyle=dep<2?'rgb(16,15,14)':'rgb(8,7,7)';wctx.fillRect(x,y,1,1)}
 if(Math.random()<(digging?.22:.38)){
 const sp=rand(22,45+power*.55)*(1-d/(R*1.2)),ux=dx/(d||1),uy=Math.min(-.25,dy/(d||1));
 addActive(x+.5,y-.5,(vx||0)*.35+ux*sp+rand(-16,16),(vy||0)*.25+uy*sp-rand(12,42),lay.m,lay.r,lay.g,lay.b,power>110&&Math.random()<.2?1.1:0,.08);

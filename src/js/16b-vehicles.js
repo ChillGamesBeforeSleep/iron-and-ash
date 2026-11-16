@@ -29,39 +29,60 @@ function spawnPlane(fromRight){return spawnAir('plane',fromRight)}
 function moleStep(c,dt){
 const f=airCaps(c);updateRegions(c);
 if(c.integrity<CFG.planeDownAt||!f.pilot){return 'crash'}
-if(c.player&&c.pilot&&c.pilot.alive&&!c.lootingHold){
-const k=G.keys,R=k.KeyD||k.ArrowRight,L=k.KeyA||k.ArrowLeft,U=k.KeyW||k.ArrowUp,D=k.KeyS||k.ArrowDown;
+/* v3.43 — the driller is a tracked machine, not a flying hole-punch.
+   · It RESTS on ground: with nothing under the tracks it falls until it lands.
+   · On the surface the tracks follow the terrain like any crawler.
+   · Underground it only moves along its own body axis, so the DRILL HEAD always leads and the tunnel is cut at the head —
+     the hull never passes through earth that has not been drilled. [S] tips the head down, [W] up; the tracks grip its own ramp.
+   · Cutting is slower than rolling through an open tunnel. [Shift] drills carefully (needed to vent gas pockets). */
+const k=G.keys,ctl=c.player&&c.pilot&&c.pilot.alive&&!c.lootingHold;
+let R=0,L=0,U=0,D=0,slow=0;if(ctl){R=k.KeyD||k.ArrowRight;L=k.KeyA||k.ArrowLeft;U=k.KeyW||k.ArrowUp;D=k.KeyS||k.ArrowDown;slow=k.ShiftLeft||k.ShiftRight}
 if(L&&!R)c.fx=-1;else if(R&&!L)c.fx=1;
-const dx=(R?1:0)-(L?1:0),dy=(D?1:0)-(U?1:0);
-const moving=(dx!==0||dy!==0)&&c.gas>0;
-if(moving){
-c.parkedOnGround=false;
-const wantPitch=dy?clamp(-dy*.55,-.62,.62):0;
-c.pitch=lerp(c.pitch||0,wantPitch,Math.min(1,dt*6));
-const sp=CFG.drillSpeed*(.4+.6*f.eng)*(c.digK||1);
-c.vx=lerp(c.vx||0,dx?dx*sp:Math.cos(c.pitch)*c.fx*sp*.65,Math.min(1,dt*6));
-c.vy=lerp(c.vy||0,dy*sp*.85,Math.min(1,dt*6));
-c.gas=Math.max(0,c.gas-dt*CFG.gasBurn*.85);
-}else{c.vx*=Math.pow(.04,dt);c.vy*=Math.pow(.04,dt);c.pitch=lerp(c.pitch||0,0,Math.min(1,dt*5))}
-c.cool=(c.cool||0)-dt;
+const thr=((L||R||U||D)&&c.gas>0)?1:0,drv=CFG.drillSpeed*(.4+.6*f.eng)*(c.digK||1)*(slow?.45:1);
+const half=c.w*.3,sr=surfaceY(c.ax-half),sf=surfaceY(c.ax+half),onTop=Math.abs(c.ay-(sr+sf)/2)<6&&!D;
+let vx=0,vy=0,cutting=false;
+if(onTop){
+c.fallV=0;c.ang=lerp(c.ang||0,Math.atan2(sf-sr,half*2),Math.min(1,dt*8));c.pitch=-c.fx*c.ang;
+if(thr&&(L||R)){vx=c.fx*drv*1.5*Math.cos(c.ang);c.parkedOnGround=false}
+c.ax=clamp(c.ax+vx*dt,30,G.world.W-30);c.ay=(surfaceY(c.ax-half)+surfaceY(c.ax+half))/2;vehPose(c);
+}else{
+c.ang=-c.fx*(c.pitch||0);vehPose(c);
+const probe=d=>{for(const u of [.22,.5,.78]){const p=toWorld(c,c.w*u,c.h+d);if(solidAt(p[0],p[1]))return true}return false};
+const firm=probe(1.5),held=firm||probe(5)||solidAt(c.cxw,c.cyw);
+if(!held){
+/* nothing under the tracks: it drops */
+c.fallV=Math.min(280,(c.fallV||0)+320*dt);c.ay+=c.fallV*dt;c.pitch=lerp(c.pitch||0,0,Math.min(1,dt*3));vy=c.fallV;
+let g=0;while(g++<14&&solidAt(c.ax,c.ay-1))c.ay-=1;
+}else{
+if((c.fallV||0)>110){sfx('crash',Math.min(.7,c.fallV/400),c.ax);G.shake+=c.fallV/90;for(let i=0;i<10;i++)spawn(c.ax+rand(-c.w*.4,c.w*.4),c.ay,rand(-30,30),rand(-40,-8),rand(.3,.7),[92,84,72],2,'dust')}
+c.fallV=0;if(!firm)c.ay+=Math.min(3,70*dt);
+c.pitch=lerp(c.pitch||0,D?((L||R)?-.62:-.95):U?.6:0,Math.min(1,dt*4));
+if(thr){c.parkedOnGround=false;c.ang=-c.fx*c.pitch;vehPose(c);
+const tip=toWorld(c,c.w+2,c.h*.6);cutting=solidAt(tip[0],tip[1]);
+const v=cutting?drv:drv*1.5,ux=c.fx*c.co,uy=c.fx*c.si;vx=ux*v;vy=uy*v;
+c.ax=clamp(c.ax+vx*dt,30,G.world.W-30);c.ay=Math.min(G.world.H-14,c.ay+vy*dt);vehPose(c);
+/* the cut happens at the drill head, and the spoil is thrown back along the tunnel */
+const head=toWorld(c,c.w-2,c.h*.6);craterGround(head[0],head[1],c.h*.44,95,-ux*34,-24,true);
+if(cutting){c.drillT=.14;c.dirtyPaint=1;addLight(head[0],head[1],24,.65,.08,'255,210,130');G.shake+=dt*1.4;
+if(Math.random()<dt*26)spawn(head[0]+rand(-3,3),head[1]+rand(-5,5),-ux*rand(20,70)+rand(-20,20),-uy*rand(20,70)-rand(5,40),rand(.15,.4),[255,rand(190,235),130],1,'spark');
+if(Math.random()<dt*16)sfx('chuff',.3,head[0])}
+else if(Math.random()<dt*9){const rear=toWorld(c,2,c.h);spawn(rear[0],rear[1]-1,-ux*rand(8,24),rand(-22,-6),rand(.3,.6),[88,80,70],2,'dust')}
+}}
+c.ang=-c.fx*(c.pitch||0);vehPose(c);
+}
+if(c.drillT>0){c.drillT-=dt;c.dirtyPaint=1}
+if(ctl&&c.cyw>groundY(c.cxw)+4){const hl=toWorld(c,c.w+8,c.h*.55);addLight(hl[0],hl[1],44,.38,.06,'255,222,170')}
+c.vx=vx;c.vy=vy;c.phase=(c.phase||0)+c.fx*Math.hypot(vx,vy)*dt/2.2;
+if(thr)c.gas=Math.max(0,c.gas-dt*CFG.gasBurn*(cutting?1:.55));
+if(ctl){c.cool=(c.cool||0)-dt;
 if((k.Space||G.mouse.down)&&c.cool<=0&&f.wpn>0&&(c.ammoPool||0)>=1){
 const pt=c.pts.nose||[c.w-2,8],gp=toWorld(c,pt[0],pt[1]);
 craterGround(gp[0]+c.fx*6,gp[1],9,130,c.fx*55,-20,true);
 c.ammoPool=Math.max(0,c.ammoPool-1);c.shots=c.ammoPool;c.cool=.22;sfx('boom',.45,gp[0]);G.shake+=1.5;
-}
-}else{c.vx*=Math.pow(.05,dt);c.vy*=Math.pow(.05,dt)}
+}}
 const gy=groundY(c.cxw);
-c.ax=clamp(c.ax+c.vx*dt,30,G.world.W-30);
-c.ay=clamp(c.ay+c.vy*dt,gy-.5,G.world.H-14);
-c.ang=-c.fx*c.pitch;vehPose(c);
 c.landed=(c.ay<=gy+4);
 const sp=Math.hypot(c.vx,c.vy);
-if(c.cyw>=gy-2&&sp>2){
-const nose=toWorld(c,c.w-2,c.h*.55);
-craterGround(nose[0],nose[1],Math.max(5.5,c.h*.42),95,c.vx,c.vy,true);
-addLight(nose[0],nose[1],26,.7,.08,'255,210,130');
-if(Math.random()<dt*16)sfx('chuff',.3,nose[0]);
-}
 for(const bu of G.world.buried||[]){
 if(bu.looted||Math.hypot(c.cxw-bu.x,c.cyw-bu.y)>bu.r+(bu.kind==='gas'?8:14))continue;
 if(bu.kind==='gas'){

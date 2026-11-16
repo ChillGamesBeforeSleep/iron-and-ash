@@ -112,7 +112,7 @@ if(deckUp&&crewOnTrain()>=3&&cands[1]){const m2=cands[1];m2.task=null;if(!m2.bod
 crewSync();
 G.vehicles=G.vehicles||[];G.vehicles.push(c);setControl(c);G.tel.sorties=(G.tel.sorties||0)+1;
 for(let i=0;i<14;i++)spawn(p[0]+rand(-14,14),p[1],rand(-30,30)-G.train.v*.3,rand(-30,-5),rand(.5,1.1),[200,196,188],2,'smoke');sfx('gun',.5,p[0]);
-log(`${m.name}${c.passengers.length?' + '+c.passengers.map(x=>x.name).join(', '):''} ${mole?'rolls out in':'takes off in'} the ${c.d.name.toLowerCase()} (${Math.round(c.gas)} gas · ${c.ammoPool} rounds${done?' · '+done:''}). ${plane?'[W] accelerate · [S] slow down · [A] nose up · [D] nose down · [R] roll':mole?'[A/D] drive · [S] dig down · [W] climb':'[W/S] up/down · [A/D] move · [R] turn'} · ${mole?'[Space] seismic charge · [E] unload · drive back onto the rig to dock':'[Space] gun · [B] bomb · [J] eject'} · [Tab] switch`,'good');
+log(`${m.name}${c.passengers.length?' + '+c.passengers.map(x=>x.name).join(', '):''} ${mole?'rolls out in':'takes off in'} the ${c.d.name.toLowerCase()} (${Math.round(c.gas)} gas · ${c.ammoPool} rounds${done?' · '+done:''}). ${plane?'[W] accelerate · [S] slow down · [A] nose up · [D] nose down · [R] roll':mole?'[A/D] drive · [S] drill down · [W] drill up · [Shift] careful':'[W/S] up/down · [A/D] move · [R] turn'} · ${mole?'[Space] seismic charge · [E] unload · drive back onto the rig to dock':'[Space] gun · [B] bomb · [J] eject'} · [Tab] switch`,'good');
 return c}
 function syncCarrierDeck(car,u){
 if(!car||!u)return;const dks=[];car.d.roles.forEach((ro,r)=>{if(ro==='DECK')dks.push(r)});

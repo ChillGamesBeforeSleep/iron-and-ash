@@ -69,6 +69,7 @@ if(dx&&i+dx>=0&&i+dx<w&&c.mat[k+dx]===m){const q=k+dx;r=c.col[q*3];g=c.col[q*3+1
 if(c.d.spin&&((k/w)|0)<c.d.spin*1.6&&c.d.roles[c.reg[k]]==='ROTOR'&&((k%w)+Math.floor(t*70))%5<2){d[q+3]=0;continue}
 if(GLOWC[m]){const f=.92+.08*Math.sin(t*2.6+k*.9);r=Math.min(255,r*f+60);g=Math.min(255,g*f+45);b=Math.min(255,b*f+25)}
 if(c.sil[k]){if(c.custom){if(!c.occ[c.sil[k]-1]){r*=.26;g*=.3;b*=.36}}else if(c.occ[c.sil[k]-1]){r=CREW[0];g=CREW[1];b=CREW[2]}}
+if(c.drillT>0&&c.reg[k]===2&&(k%w)>w*.72&&(m===M.ARMOR||m===M.STEEL||m===M.STONE)){const s=((k%w)+((k/w)|0)*2+((t*26)|0))%4<2?1.5:.72;r*=s;g*=s;b*=s}
 if(CFG.unitShade){/* form from structure: a pixel with nothing above it is a lit top edge, one with nothing below is an under-shadow.
    Freshly torn metal therefore shows a bright edge without any new art. */
 const e=CFG.unitShade*(c.custom?.55:1),up=k>=w?c.mat[k-w]:0,dn=k+w<c.n?c.mat[k+w]:0;

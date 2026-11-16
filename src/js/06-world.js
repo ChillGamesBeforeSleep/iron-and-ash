@@ -83,6 +83,8 @@ if(dep<11)return{m:M.CONCRETE,r:88,g:82,b:74};
 if(hash2(x>>1,y>>1)<.08)return{m:M.STONE,r:112,g:104,b:92};
 return{m:M.STONE,r:64,g:54,b:44};
 }
+/* colour of each stratum as multipliers of the biome ground tint: [r,g,b,brightness] */
+const STRATA=[[1,.96,.9,1.02],[.8,.88,1,.92],[.64,.64,.74,.84],[.78,.52,.48,.8]];
 function renderWorldCanvas(w,rng){
 const cv=document.createElement('canvas');cv.width=w.W;cv.height=w.H;const ctx=cv.getContext('2d');
 const img=ctx.createImageData(w.W,w.H),d=img.data;
@@ -96,7 +98,10 @@ for(let y=t+2;y<w.H;y++){
 const q=(y*w.W+x)*4,dep=y-(t+2);let r,g,bb;const n=.85+hash2(x,y)*.3;
 if(dep<3){const tie=(x%6<3);r=(tie?84:106)*n;g=(tie?58:100)*n;bb=(tie?36:90)*n}
 else if(dep<9){const k=(1-dep*.035)*n*.88,br=((x+dep)%9<2)?1.12:1;r=86*k*br;g=78*k*br;bb=68*k*br}
-else{const k=(.72+.28*Math.sin(y*.33+wobble))*(1-Math.min(.62,dep/230))*n*.58;r=base[0]*k;g=base[1]*k;bb=base[2]*k;
+else{/* v3.43: the earth is readable strata, not a fade to black — ash silt, permafrost, basalt, bedrock — so a tunnel shows as a dark cut through solid ground */
+const dd=dep+wobble*2+vnoise(x/90,47)*10,L=dd<46?STRATA[0]:dd<112?STRATA[1]:dd<192?STRATA[2]:STRATA[3];
+const seam=Math.abs(dd-46)<1.4||Math.abs(dd-112)<1.4||Math.abs(dd-192)<1.4?.62:1;
+const k=(.8+.2*Math.sin(y*.33+wobble))*seam*(1-Math.min(.22,dep/600))*n*L[3];r=base[0]*k*L[0];g=base[1]*k*L[1];bb=base[2]*k*L[2];
 if(hash2(x>>1,y>>1)<.022){r=118*n;g=108*n;bb=94*n}
 if(b==='lava'&&dep>5&&Math.abs(vnoise(x/14+Math.sin(y/9)*2,11))<.05){const gl=1-dep/200;r=lerp(r,235,gl);g=lerp(g,92,gl);bb=lerp(bb,30,gl)}
 if(b==='acid'&&dep>5&&hash2(x,y*7)<.01){r=80;g=140;bb=70}}
