@@ -55,6 +55,9 @@ Repo layout, build, dev server, docs, bug triage, git.
   - Liquids v2: pooled cell liquids (water, oil, fuel, acid, lava) flowing in tunnels and craters — this is what makes digging dangerous and fun.
 - **Sound pass** per material (metal ring, wood crack, glass).
 
+### Done in v3.43
+Tracked driller, rocket/sniper raiders and ambushes, vehicles assembled from blocks, agent API + Arena + built-in bots, duels and train cards. See CHANGELOG.
+
 ### Phase 1b — Build on the ledger ← next for gameplay
 - **One mover for all bodies:** replace the per-type control code with a single locomotion solver that reads the ledger — grip → drives, rotor work over weight → hovers, skin lift → flies, bite → digs — plus new LEG / TRACK / FLOAT roles so walkers, crawlers and boats are just different pixel arrangements.
 - **Wiring:** power travels along WIRE pixels from ENGINE / BATTERY to guns, lamps and pumps; cut the wire, lose the function.

@@ -71,6 +71,8 @@ fxBloom: .9, fxVignette: .4, fxBevel: .05, fxGrain: .028, unitShade: 1, ashFleck
    boilerBoost: power the stock locomotive's boiler adds; minGas: reserve of a vehicle with no tank pixels at all */
 /* raiders with heavy weapons (v3.43): rocket teams and snipers, and ambushes that block the line */
 raiderRpgRange: 280, raiderSniperRange: 340, raiderRpgDmg: 95, raiderSniperDmg: 70, raiderRockets: 4, raiderRpgPow: 165, barricadeHp: 4, raiderRpgChance: .5, raiderSniperChance: .4, ambushEvery: 1700,
+/* duel (v3.43): gap between the two trains, share of crew at which the rival gives up, its gun */
+duelGap: 330, duelBreak: .5, duelGunPow: 115, duelReload: 5.5,
 px: { massUnit: 3450, fuel: .08, water: .045, ammo: .08, scrap: .066, equip: .07, charge: .16, emptyTank: .35, boilerBoost: .3, minGas: 3 },
 camPad: 40, camVehicle: 320,
 wind: -14, shedMul: 1,

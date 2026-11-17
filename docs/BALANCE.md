@@ -150,6 +150,21 @@ Three stock units had art that did not match their job once pixels counted:
 
 ---
 
+## Raiders, ambushes and duels (v3.43)
+| Setting (`CFG`) | Value | Meaning |
+|---|---|---|
+| `raiderRpgChance` / `raiderSniperChance` | .5 / .4 | chance the 2nd / 3rd raider of a party carries a rocket launcher / sniper rifle |
+| `raiderRpgRange` / `raiderSniperRange` | 280 / 340 px | rifles: 60 |
+| `raiderRpgPow` | 165 | rocket blast power (a cannon shell is 110–120) |
+| `raiderSniperDmg` | 70 | per hit on a wagon pixel ring; 42 on a person |
+| `raiderRockets` | 4 | rockets per launcher |
+| `ambushEvery` | 1700 px | roughly one ambush per leg at difficulty 1 |
+| `barricadeHp` | ×4 | a barricade takes about four rams with a plough |
+| `duelGunPow` / `duelReload` | 115 / 5.5 s | the rival's cannon |
+| `duelBreak` | .5 | the rival strikes its colours at half its crew |
+
+Measured with the built-in bots (single leg, seeded): an undefended train loses ~20 000 pixel-hp to one ambush's rockets in 16 s, so ambushes have to be answered; Quartermaster, Ironclad and Express all finish seed 3. Duels against a mirror last about 6 game-minutes for the stock autopilot.
+
 ## Tuning guide
 - Everything global is in `CFG.px` (one line in `00-config.js`); per-material numbers are in `MAT_ASSET` at the top of `04b-ledger.js`.
 - After any change run `__api.ledgerTable()` in the browser console to regenerate the unit tables above, and check the starting train's totals against the table.

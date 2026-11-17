@@ -25,7 +25,7 @@ if(G.brake&&Math.abs(tr.v)>12&&Math.random()<.6){for(const c of cars.slice(0,2))
 function impact(o,oi,car,front,speed){
 const tr=G.train,ram=front&&G.caps.ram;
 const cpt=front?car.pts.couplerFront:car.pts.couplerRear,p=toWorld(car,front?car.w-2:2,cpt[1]-3);
-if(speed>7){
+if(speed>7){o.rammed=(o.rammed||0)+1;
 sfx('crash',Math.min(1,speed/40));G.cause='collisions';damageCircle(p[0],p[1],3+speed/12,speed*2.4*(ram?.35-.08*G.caps.ramLvl:1),0,front?-30:30,-40);
 o.hp-=speed*(ram?2.4+.6*G.caps.ramLvl:1.1)*2;G.shake+=speed/10;
 tr.cars.forEach((c,i)=>jolt(c,(front?1:-1)*speed*(i===0?-.8:.55*(1-i/tr.cars.length)),-speed*.12,(front?-1:1)*speed*.0035));

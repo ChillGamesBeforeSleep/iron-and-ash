@@ -59,7 +59,7 @@ for(let k=0;k<c.n;k++){const m=c.mat[k];if(!m)continue;const r=c.reg[k];px++;hp+
 if(m===M.FUEL)mF+=LMASS[m];else if(m===M.WATER)mW+=LMASS[m];else solid+=LMASS[m];
 const st=LSTORE[m];if(st){const up=LEDGER_UP[ro[r]];S[st]+=Y[st]*(up&&up[st]?1+up[st]*lvl[r]:1)}
 if(LENG[m])a.regEng[r]+=LENG[m];if(LGRIP[m])a.regGrip[r]+=LGRIP[m];if(LBITE[m])a.regBite[r]+=LBITE[m]}
-a.px=px;a.hp=hp;a.cost=cost/100;a.lift=lift;
+a.px=px;a.hp=hp;a.cost=cost/100;a.lift=lift;a.lvKey=lvl.join();
 a.dry=solid+(mF+mW)*Y.emptyTank;a.mFuel=mF*(1-Y.emptyTank);a.mWater=mW*(1-Y.emptyTank);a.full=solid+mF+mW;
 let eng=0,grip=0,bite=0,wheels=0;const rc=c.regCount||8;
 for(let r=0;r<rc;r++){const R=ro[r];if(R==='ENGINE'||R==='BOILER')eng+=a.regEng[r];if(R==='WHEEL'){grip+=a.regGrip[r];wheels++}if(R==='WEAPON'||R==='RAM')bite+=a.regBite[r]}

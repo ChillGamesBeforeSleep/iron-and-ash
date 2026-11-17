@@ -12,9 +12,9 @@ panel.innerHTML=`<h2>Apocalyptic Train · v${GAME_VERSION}</h2><h1>ENGINE V2</h1
 <tr><td>Fight</td><td>Click to fire the cannon on the armored car. Shells can hit your own train.</td></tr>
 <tr><td>Lose cars</td><td>A car under 30% breaks apart. Cars behind it uncouple. Reverse gently into them to recouple.</td></tr>
 </table>
-<div class="btns">${readSave()?`<button class="go" id="cont">CONTINUE — LEG ${readSave().leg}</button>`:''}<button class="go ${readSave()?'alt':''}" id="start">NEW RUN</button><button class="go alt" id="wsbtn">UNIT FORGE</button><button class="go alt" id="cxbtn">CODEX / WIKI</button></div>`;
+<div class="btns">${readSave()?`<button class="go" id="cont">CONTINUE — LEG ${readSave().leg}</button>`:''}<button class="go ${readSave()?'alt':''}" id="start">NEW RUN</button><button class="go alt" id="wsbtn">UNIT FORGE</button><button class="go alt" id="cxbtn">CODEX / WIKI</button><button class="go alt" id="arbtn">ARENA</button></div>`;
 $('wsbtn').onclick=showWorkshop;
-$('cxbtn').onclick=()=>showCodex('units');
+$('cxbtn').onclick=()=>showCodex('units');$('arbtn').onclick=()=>showArena();
 $('start').onclick=()=>startRun();
 if($('cont'))$('cont').onclick=()=>{const d=readSave();if(d)loadGame(d)};
 }
@@ -111,7 +111,7 @@ function closeCodex(){
 if(G.cxFromPlay){G.cxFromPlay=false;G.paused=false;overlay.hidden=true;panel.className='panel';return}
 panel.className='panel';showTitle();
 }
-function startRun(){
+function startRun(){G.rival=null;G.duel=null;G.duelResult=null;
 G.mlog=[];G.legReports=[];G.snapT=0;
 G.leg=1;G.diff=1;G.res={crew:5,hurt:0,fuel:110,scrap:8,ammo:15,equip:2,water:75};G.stats={dist:0,kills:0,lost:0,repairs:0};G.train=newTrain();initCrew(G.res.crew);G.stash=[];startLeg();
 }

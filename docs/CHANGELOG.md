@@ -2,6 +2,17 @@
 
 Older history (v3.9 – v3.25): `archive/modular-source-v3.25/docs/CHANGELOG.md`.
 
+## 3.43.0 — machines that touch the ground, raiders with teeth, agents and duels
+- **Tunnel driller is a tracked machine.** It rests on the ground and falls when nothing is under its tracks; on the surface the tracks follow the terrain; underground it only moves along its own axis, so the drill head always leads and cuts the tunnel (it no longer floats through solid earth). The head spins and throws sparks while cutting, spoil is thrown back down the tunnel, [Shift] drills slowly, and a headlamp lights the way. Underground is drawn as four readable strata, with tunnels as dark cuts.
+- **Raiders with heavy weapons.** Raiding parties may carry a rocket launcher or a sniper rifle; both out-range rifles and target your vehicles first. **Ambushes**: about once per leg the line is blocked by a sturdy barricade with a dug-in rocket team and sniper — stop short and shell them, or ram through under fire (four rams at most). Enemy rockets now explode on your units (they used to fly through them).
+- **Vehicles from blocks (Unit Forge → Start).** A plane, helicopter, driller or tank is three blocks bolted to a frame. Any third of a stock vehicle (engine, cab, weapon, or a cab used as passenger seats) can go in any position; the frame adds the wings, rotor, or tracks and drill. The Pixel Ledger judges the result — an all-tank-block plane "barely flies".
+- **Agents and the Arena.** `window.IronAsh` (observe / act / run / tournament): any bot or language model plays by setting the crew's standing orders (doctrine) and giving direct orders every few seconds. Four built-in bots (Quartermaster, Ironclad, Express, Vulture), seeded reproducible episodes, a scored leaderboard, and endpoint agents (a URL you run — reference Claude endpoint in `tools/agent-proxy.mjs`). See `docs/AGENTS.md`.
+- **Duels.** Train against train on one line, decided by crew: the rival's crew gives up when its worst-hit wagons are wrecked; you lose when your crew is dead or you surrender. Fight a mirror of your train or a **train card** another player sent you. Bots duel in the Arena too.
+- **Station screen** no longer slides under the train bar; play-only HUD is hidden there, and the train bar shrinks or wraps to fit any window.
+- **[C]** hides every panel in the Unit Forge and its test range (Shift+C in a run). Zoom-out limit raised from 436 to 680.
+- Crew-car seat boxes hold 4 (was 2): the starting train seats 16.
+- Performance: a unit's ledger is recounted only when its pixels change (simulation step ~3× faster with a full train).
+
 ## 3.42.0 — the Pixel Ledger (core mechanic)
 Every pixel of the material layer is now an asset. Full rules and numbers: `docs/BALANCE.md`.
 - **Weight** comes from the pixels (was a typed-in number per unit). Tanks get lighter as they empty.

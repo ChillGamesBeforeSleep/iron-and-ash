@@ -20,6 +20,8 @@ function tone(o){const a=SND.ctx,t=a.currentTime+(o.delay||0),os=a.createOscilla
 const g=a.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,o.vol),t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+o.dur);os.connect(g);g.connect(SND.master);os.start(t);os.stop(t+o.dur+.05)}
 const GAP={clack:.05,boom:.035,tink:.03,shot:.025,thud:.05,break:.05,bad:.5,chuff:.03};
 function sfx(name,vol=1,x){
+/* sound depends on the audio clock; in a seeded episode it must not draw from the simulation's random stream */
+if(G.rngSeeded&&!G.rngSfx){G.rngSfx=1;const R=Math.random;Math.random=G.nativeRnd;try{return sfx(name,vol,x)}finally{Math.random=R;G.rngSfx=0}}
 if(!SND.ctx||!SND.on||SND.ctx.state!=='running')return;const now=SND.ctx.currentTime;if(GAP[name]&&now-(SND.last[name]||0)<GAP[name])return;SND.last[name]=now;
 if(x!==undefined){const d=Math.abs(x-(G.camX+S.W*.5));vol*=clamp(1.15-d/(S.W*.9),0,1)}if(vol<.03)return;vol=Math.min(1.2,vol);
 switch(name){

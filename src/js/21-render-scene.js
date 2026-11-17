@@ -155,6 +155,7 @@ const groups=[G.train.cars,...G.loose.map(g=>g.cars)];
 for(const cars of groups)for(let i=1;i<cars.length;i++){const pa=cars[i-1].pts.couplerRear,pb=cars[i].pts.couplerFront,a=toWorld(cars[i-1],pa[0],pa[1]),b=toWorld(cars[i],pb[0]+1,pb[1]);line(ctx,a[0]-cx,a[1]-cy,b[0]-cx,b[1]-cy)}
 for(const cars of groups)for(const c of cars)if(c.ax>cx-80&&c.ax<cx+W+80)drawCar(ctx,c,cx,cy);
 for(const c of G.vehicles||[])if(c.ax>cx-80&&c.ax<cx+W+80)drawCar(ctx,c,cx,cy);
+if(G.rival)for(const c of G.rival.cars)if(c.ax>cx-80&&c.ax<cx+W+80)drawCar(ctx,c,cx,cy);
 drawChunks(ctx,cx,cy);pxDraw(ctx,cx,cy,W,H);
 if(G.state==='play'){const f=1.45,off=cx*f;ctx.fillStyle='rgb(12,11,11)';for(let k=Math.floor(off/230);k<=Math.floor((off+W)/230)+1;k++){if(hash2(k,77)<.45)continue;const sx=k*230+hash2(k,78)*90-off;ctx.fillRect(Math.round(sx),H*.12,3,H);ctx.fillRect(Math.round(sx)-7,H*.12+6,17,2);ctx.fillRect(Math.round(sx)-5,H*.12+13,13,2)}}
 if(G.riders>0){let n=G.riders;for(const c of G.train.cars){if(n<=0)break;if(isLoco(c))continue;for(let s=0;s<3&&n>0;s++,n--){const p=toWorld(c,12+s*16,c.d.split),x=Math.round(p[0]),y=Math.round(p[1]);

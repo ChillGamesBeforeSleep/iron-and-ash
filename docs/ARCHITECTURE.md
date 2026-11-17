@@ -44,7 +44,9 @@ Because all modules share one scope, a `const`/`function` defined in one file is
 | `24-save-station` | save/load, station screen |
 | `25-forge`, `25b-forge-sim` | Unit Forge and its test range |
 | `26-flow` | title, run/leg flow, codex |
+| `25c-forge-blocks` | assemble a vehicle from three blocks and a frame |
 | `27-input`, `28-boot` | input, boot, the frame loop |
+| `29-agents` | `window.IronAsh` agent API, built-in bots, seeded episodes, tournaments, Arena screen, duels and train cards |
 
 ## Rules
 1. **Edit the module.** Never add a second `<script>` or hook functions through `window` — nothing outside the closure can see the game. The build fails on `window._hook_*` / `window._orig_*`.

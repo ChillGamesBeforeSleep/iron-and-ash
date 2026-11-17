@@ -38,10 +38,11 @@ function carAtPoint(wx,wy,ownOnly){for(const c of G.all){if(ownOnly&&c.enemy)con
 function updateRegions(c){
 c.regHp.fill(0);c.regFire.fill(0);
 if(!c.regDmgPx)c.regDmgPx=new Uint16Array(8);else c.regDmgPx.fill(0);
-for(let k=0;k<c.n;k++){const rg=c.reg[k];if(c.mat[k]){c.regHp[rg]+=c.hp[k];if(c.fire[k]>0)c.regFire[rg]++;if(c.hp[k]<MAXHP[c.mat[k]]*.95)c.regDmgPx[rg]++}else if(c.omat&&c.omat[k])c.regDmgPx[rg]++}
+let live=0;for(let k=0;k<c.n;k++){const rg=c.reg[k];if(c.mat[k]){live++;c.regHp[rg]+=c.hp[k];if(c.fire[k]>0)c.regFire[rg]++;if(c.hp[k]<MAXHP[c.mat[k]]*.95)c.regDmgPx[rg]++}else if(c.omat&&c.omat[k])c.regDmgPx[rg]++}
 const rc=c.regCount||8;let s=0;for(let r=0;r<rc;r++){c.regInt[r]=c.regMax[r]?c.regHp[r]/c.regMax[r]:0;const pxOut=rc===3&&c.regDmgPx[r]>CFG.secMaxDmgPx;c.alive[r]=c.regInt[r]>=CFG.disableAt&&!pxOut;s+=c.regHp[r]}
 c.integrity=s/c.totalMax;
-ledger(c);
+/* the ledger only changes when pixels appear or disappear — recount then, not on every hit */
+if(!c.as||c.as.px!==live||c.as.lvKey!==c.lvl.join())ledger(c);
 }
 function hitPixel(c,k,amt,vx,vy,cause){
 if(MATS[c.mat[k]].spark&&Math.random()<.6){const p=toWorld(c,k%c.w+.5,((k/c.w)|0)+.5);for(let q=0;q<4;q++)spark(p[0],p[1],rand(-60,60),rand(-70,-10),rand(.15,.4),[255,rand(200,240),140],1);if(Math.random()<.04)c.fire[k]=Math.max(c.fire[k],.4)}

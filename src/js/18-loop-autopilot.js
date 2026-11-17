@@ -20,16 +20,19 @@ case 'camp':return R.crew<C.crew?2:0;
 case 'yard':return cars.length<7&&R.crew>=4&&R.scrap>=4?1:0;
 case 'bunker':return crewOnTrain()>=4&&avgInt>.75&&siteRisk(s,partySize({kind:'site',s}))<.3?1:0;}return 0;
 }
+/* DOCTRINE (v3.43): the standing orders the autopilot drives by. Bots and agents differ only in these (29-agents). */
+const DOCTRINE0={speed:1,loot:1,repairAt:.55,ram:'auto',standoff:0,rescue:true};
 function autopilot(dt){
-const A=G.ap||(G.ap={cool:0,skip:new Set(),wait:0});
+const A=G.ap||(G.ap={cool:0,skip:new Set(),wait:0}),D=G.doc||DOCTRINE0;
 const cars=G.train.cars,L=cars[0],v=G.train.v,R=G.res,C=G.caps,front=L.x+L.w/2;
 A.cool-=dt;
 if(A.cool<=0){
-let need=false;for(const c of cars)for(let r=0;r<8;r++)if(c.regMax[r]&&(!c.alive[r]||c.regFire[r]>10||c.regInt[r]<.55))need=true;
+let need=false;for(const c of cars)for(let r=0;r<8;r++)if(c.regMax[r]&&(!c.alive[r]||c.regFire[r]>10||c.regInt[r]<D.repairAt))need=true;
 if(need&&R.scrap>=1){quickRepair();A.cool=.7}
 else if(C.cannon&&R.ammo<6&&C.workshop&&R.scrap>5&&R.ammo<C.ammo){craftAmmo();A.cool=.5}
 else if((R.equip>=3&&R.scrap<3&&R.scrap<C.scrap-2)||(need&&R.scrap<1&&R.equip>=1)){salvageEquip();A.cool=.5}
 }
+if(G.rival&&C.cannon&&R.ammo>0&&G.gunCool<=0&&G.rival.cars[0]){const rc=G.rival.cars[0],c0=C.cannon,p0=toWorld(c0,c0.pts.turret[0],c0.pts.turret[1]),tx=rc.cxw+rand(-rc.w*.3,rc.w*.3),ty=rc.cyw,tt=Math.hypot(tx-p0[0],ty-p0[1])/CFG.shellSpeed;if(tt<2.6){G.mouse.wx=tx;G.mouse.wy=ty-27*tt*tt;fireGun()}}
 const best=cannonTarget(280,L.ax,L.ay);
 if(best&&C.cannon&&R.ammo>0&&G.gunCool<=0){const a=cannonAim(best);G.mouse.wx=a[0];G.mouse.wy=a[1];fireGun()}
 else if(C.cannon&&R.ammo>0&&G.gunCool<=0&&G.raiders&&G.raiders.length){let tr=null,rd=240;for(const r of G.raiders){if(!r.alive||r.flee)continue;const clear=cars.every(c=>Math.abs(c.x-r.x)>c.w/2+28);if(!clear)continue;const d=Math.abs(r.x-L.ax);if(d<rd){rd=d;tr=r}}
@@ -46,19 +49,19 @@ const want=-Math.min(14,gd*.2+4);if(v>want+1){G.target=-CFG.reverseMax;G.brake=f
 const fuelAhead=G.world.sites.some(st=>st.uses>0&&(st.type==='depot'||st.type==='ruin')&&st.x>front-60&&st.x<front+520);
 if(R.fuel<8&&!fuelAhead&&L.ax<G.world.LEN-200){G.target=0;G.brake=true;if(Math.abs(v)<1.5&&A.expT<=0){A.expT=1.5;tryExpedition()}return}
 let tgt=null;
-for(const o of G.obstacles){if(o.x>front-4&&o.x<front+300&&(!tgt||o.x<tgt.x)){const ram=C.ram&&o.hp<=90;tgt={kind:ram?'ram':'obstacle',x:o.x-6,o}}}
-for(const st of G.world.sites){if(st.uses<=0||A.skip.has(st))continue;if(st.x<front-60||st.x>front+700)continue;const sc=siteScore(st);if(sc<=0)continue;const sx=st.x+40;if(!tgt||sx<tgt.x){tgt={kind:'site',x:sx,s:st}}}
+for(const o of G.obstacles){if(o.x>front-4&&o.x<front+300&&(!tgt||o.x<tgt.x)){const ram=(o.rammed||0)<4&&((D.ram==='always'&&C.ram)||(D.ram!=='never'&&C.ram&&o.hp<=90)),guarded=!!o.barricade&&(G.raiders||[]).some(r=>r.alive&&!r.flee&&r.x>o.x&&r.x<o.x+260);tgt={kind:ram?'ram':'obstacle',x:o.x-6-(guarded&&!ram?D.standoff:0),o,guarded:guarded&&D.standoff>0}}}
+for(const st of G.world.sites){if(st.uses<=0||A.skip.has(st))continue;if(st.x<front-60||st.x>front+700)continue;const sc=siteScore(st)*D.loot;if(sc<=0)continue;const sx=st.x+40;if(!tgt||sx<tgt.x){tgt={kind:'site',x:sx,s:st}}}
 if(C.water>0&&(R.water||0)<C.water*.6){const pc=cars.find(c=>c.d.roles.includes('WATER'));if(pc)for(const st of G.world.sites){if(st.type!=='tower'||st.collapsed||!(st.water>0)||!st.spout||A.skip.has(st))continue;const sx=st.spout[0]+(front-pc.ax);if(sx<front-30||sx>front+700)continue;if(!tgt||sx<tgt.x)tgt={kind:'tower',x:sx,s:st}}}
-for(const st of G.world.sites){if(st.type!=='stranded'||!(st.people>0)||st.x<front-60||st.x>front+700)continue;const sx=st.x+30;if(!tgt||sx<tgt.x)tgt={kind:'stranded',x:sx,s:st}}
+for(const st of G.world.sites){if(!D.rescue||st.type!=='stranded'||!(st.people>0)||st.x<front-60||st.x>front+700)continue;const sx=st.x+30;if(!tgt||sx<tgt.x)tgt={kind:'stranded',x:sx,s:st}}
 if(L.ax>G.world.LEN-400&&(!tgt||tgt.x>G.world.LEN+30))tgt={kind:'station',x:G.world.LEN+L.w/2+30};
 const decel=CFG.rolling+C.axleDrag+CFG.brake*(.35+.65*C.traction);
-if(!tgt||tgt.kind==='ram'){G.target=1;G.brake=false;return}
+if(!tgt||tgt.kind==='ram'){G.target=D.speed;G.brake=false;return}
 const dist=tgt.x-front,stopD=v>0?v*v/(2*decel)+5:0;
-if(dist>stopD){G.target=dist>stopD+40?1:.35;G.brake=false}else{G.target=0;G.brake=true}
+if(dist>stopD){G.target=dist>stopD+40?D.speed:.35;G.brake=false}else{G.target=0;G.brake=true}
 if(Math.abs(v)<1.5&&dist<=stopD+6){
 if(tgt.kind==='tower'){A.towerT=(A.towerT||0)+dt;if((R.water||0)>=C.water*.95||!(tgt.s.water>0)||(A.towerT>4&&!tgt.s.pouring)){A.skip.add(tgt.s);A.towerT=0}}
 else if(tgt.kind==='site'&&A.expT<=0){A.expT=1.5;tryExpedition();if(!G.exp)A.skip.add(tgt.s)}
-else if(tgt.kind==='obstacle'&&A.expT<=0){A.expT=1.5;tryExpedition();if(!G.exp){G.target=-CFG.reverseMax;G.brake=false;A.backUp=1.5}}
+else if(tgt.kind==='obstacle'&&!tgt.guarded&&A.expT<=0){A.expT=1.5;tryExpedition();if(!G.exp){G.target=-CFG.reverseMax;G.brake=false;A.backUp=1.5}}
 }
 if(A.backUp>0){A.backUp-=dt;G.target=-CFG.reverseMax;G.brake=false}
 if(R.fuel<=0&&Math.abs(v)<1&&!G.exp&&A.expT<=0){A.expT=1.5;tryExpedition()}
@@ -135,19 +138,20 @@ if((G.snapT-=dt)<=0){G.snapT=10;const R=G.res;G.mlog.push({t:G.tel.time,leg:G.le
 msg:`v ${Math.round(G.train.v)} · fuel ${Math.floor(R.fuel)} · scrap ${R.scrap} · ammo ${R.ammo} · equip ${R.equip} · crew ${R.crew} · cars ${G.train.cars.map(c=>c.type[0].toUpperCase()+Math.round(c.integrity*100)).join(' ')} · drones ${G.drones.length} · biome ${hazardBiome(G.train.cars[0].ax)}`})}
 const k=G.keys;
 const flying=G.piloting&&(G.vehicles||[]).includes(G.piloting);
-if(G.dev.auto)autopilot(dt);else if(flying){if(G.cruise)cruiseTick(dt);else{G.target=0;G.brake=false}}
+if(G.rival)duelTick(dt);
+if(G.dev.auto){autopilot(dt);if(G.hold&&G.t<G.hold.until){G.target=G.hold.target;G.brake=G.hold.brake}}else if(flying){if(G.cruise)cruiseTick(dt);else{G.target=0;G.brake=false}}
 else{
 const rev=k.ArrowLeft||k.KeyA,brk=k.ArrowDown||k.KeyS||k.Space;
 if(G.cruise&&(rev||brk))setCruise(false,'Auto cruise off — you have the controls');
 if(G.cruise)cruiseTick(dt);
 else{G.target=(k.ArrowRight||k.KeyD)?1:rev?-CFG.reverseMax:0;G.brake=!!brk}}
 G.throttle+=(G.target-G.throttle)*Math.min(1,dt*2.5);
-G.all=G.train.cars.concat(...G.loose.map(g=>g.cars),G.vehicles||[]);
+G.all=G.train.cars.concat(...G.loose.map(g=>g.cars),G.vehicles||[],G.rival?G.rival.cars:[]);
 for(const c of G.all){c.rdT=(c.rdT||0)-dt;if(c.rd||c.fires||c.rdT<=0){updateRegions(c);c.rd=0;c.rdT=.25}}
 computeCaps();leakTick(dt);
 trainPhysics(dt);G.trA=lerp(G.trA||0,(G.train.v-(G.prevV??G.train.v))/Math.max(dt,1e-3),.3);G.prevV=G.train.v;
 motionTick(G.train.cars,G.trA,G.train.v,dt);layout(G.train.cars,G.train.x);loosePhysics(dt);
-G.all=G.train.cars.concat(...G.loose.map(g=>g.cars),G.vehicles||[]);
+G.all=G.train.cars.concat(...G.loose.map(g=>g.cars),G.vehicles||[],G.rival?G.rival.cars:[]);
 for(const c of G.train.cars)c.phase+=G.train.v*dt/c.d.wheelR;
 for(const g of G.loose)for(const c of g.cars)c.phase+=g.v*dt/c.d.wheelR;
 PT('entities');hazards(dt);updateDrones(dt);vehicleTick(dt);raiderTick(dt);updateShots(dt);updateRocks(dt);PT('explosions');

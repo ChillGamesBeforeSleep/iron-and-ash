@@ -283,3 +283,5 @@ body.dev #simbar{right:calc(min(390px,100vw) + 12px)}
 /* [C] in the Forge / test range, Shift+C in a run: nothing but the world */
 body.nohud .hud,body.nohud #ws,body.nohud #dev,body.nohud #simbar{display:none!important}
 body.nohud::after{content:'[C] show panels';position:fixed;right:12px;bottom:10px;font:11px var(--mono);color:var(--dim);opacity:.55;pointer-events:none;z-index:50}
+#arenaBar{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:12px;align-items:center;padding:6px 10px;font:11px var(--mono);color:var(--bone)}
+#arenaBar b{letter-spacing:.1em}#arenaBar span{color:var(--dim)}
