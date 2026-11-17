@@ -8,3 +8,4 @@ art/reference/
 # never commit keys
 .env
 .env.*
+agent-memory/

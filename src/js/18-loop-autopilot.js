@@ -49,12 +49,16 @@ const want=-Math.min(14,gd*.2+4);if(v>want+1){G.target=-CFG.reverseMax;G.brake=f
 const fuelAhead=G.world.sites.some(st=>st.uses>0&&(st.type==='depot'||st.type==='ruin')&&st.x>front-60&&st.x<front+520);
 if(R.fuel<8&&!fuelAhead&&L.ax<G.world.LEN-200){G.target=0;G.brake=true;if(Math.abs(v)<1.5&&A.expT<=0){A.expT=1.5;tryExpedition()}return}
 let tgt=null;
-for(const o of G.obstacles){if(o.x>front-4&&o.x<front+300&&(!tgt||o.x<tgt.x)){const ram=(o.rammed||0)<4&&((D.ram==='always'&&C.ram)||(D.ram!=='never'&&C.ram&&o.hp<=90)),guarded=!!o.barricade&&(G.raiders||[]).some(r=>r.alive&&!r.flee&&r.x>o.x&&r.x<o.x+260);tgt={kind:ram?'ram':'obstacle',x:o.x-6-(guarded&&!ram?D.standoff:0),o,guarded:guarded&&D.standoff>0}}}
+/* v3.44: with fewer than 2 crew nobody can go out to clear the line — ram it rather than wait forever (seed 2 sat 20 minutes) */
+const handless=crewOnTrain()<2;
+for(const o of G.obstacles){if(o.x>front-4&&o.x<front+300&&(!tgt||o.x<tgt.x)){const ram=(o.rammed||0)<(handless?12:4)&&((D.ram==='always'&&C.ram)||(D.ram!=='never'&&((C.ram&&o.hp<=90)||handless))),guarded=!!o.barricade&&(G.raiders||[]).some(r=>r.alive&&!r.flee&&r.x>o.x&&r.x<o.x+260);tgt={kind:ram?'ram':'obstacle',x:o.x-6-(guarded&&!ram?D.standoff:0),o,guarded:guarded&&D.standoff>0}}}
 for(const st of G.world.sites){if(st.uses<=0||A.skip.has(st))continue;if(st.x<front-60||st.x>front+700)continue;const sc=siteScore(st)*D.loot;if(sc<=0)continue;const sx=st.x+40;if(!tgt||sx<tgt.x){tgt={kind:'site',x:sx,s:st}}}
 if(C.water>0&&(R.water||0)<C.water*.6){const pc=cars.find(c=>c.d.roles.includes('WATER'));if(pc)for(const st of G.world.sites){if(st.type!=='tower'||st.collapsed||!(st.water>0)||!st.spout||A.skip.has(st))continue;const sx=st.spout[0]+(front-pc.ax);if(sx<front-30||sx>front+700)continue;if(!tgt||sx<tgt.x)tgt={kind:'tower',x:sx,s:st}}}
 for(const st of G.world.sites){if(!D.rescue||st.type!=='stranded'||!(st.people>0)||st.x<front-60||st.x>front+700)continue;const sx=st.x+30;if(!tgt||sx<tgt.x)tgt={kind:'stranded',x:sx,s:st}}
 if(L.ax>G.world.LEN-400&&(!tgt||tgt.x>G.world.LEN+30))tgt={kind:'station',x:G.world.LEN+L.w/2+30};
 const decel=CFG.rolling+C.axleDrag+CFG.brake*(.35+.65*C.traction);
+/* a ram only counts above speed 7: stuck against the obstacle, back off for a run-up, then charge */
+if(tgt&&tgt.kind==='ram'){A.runup=(A.runup||0)-dt;if(A.runup<=-2&&tgt.o.x-front<14&&Math.abs(v)<4)A.runup=2.5;if(A.runup>0){G.target=-CFG.reverseMax;G.brake=false;return}}
 if(!tgt||tgt.kind==='ram'){G.target=D.speed;G.brake=false;return}
 const dist=tgt.x-front,stopD=v>0?v*v/(2*decel)+5:0;
 if(dist>stopD){G.target=dist>stopD+40?D.speed:.35;G.brake=false}else{G.target=0;G.brake=true}

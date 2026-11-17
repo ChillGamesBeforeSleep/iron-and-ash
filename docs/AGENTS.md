@@ -60,16 +60,23 @@ IronAsh.actions                   // the action list with formats, as text
 
 A bot is nothing but a doctrine: add one to `BOTS` in `29-agents.js` and it appears in the Arena.
 
+Every observation the runner hands an agent also carries `events` (log lines and hits since it last looked, e.g. `"tender (1) hit: 92% → 71%"`) and `lastOrders` (what became of its previous actions, e.g. `"fire: cannon not ready"`).
+
 ## Connecting a language model
-The game never holds an API key. An **endpoint agent** is a URL you run; every decision the game POSTs
+The game never holds an API key. An **endpoint agent** is a URL you run. Protocol 2 — the game POSTs JSON with a `kind`:
 
-```json
-{ "game": "iron-and-ash", "protocol": 1, "observation": { … }, "actions": { …formats… } }
-```
+| `kind` | Body | Expected reply |
+|---|---|---|
+| `start` | `{episode, info:{seed, set:"practice"｜"test"｜"free", round, legs, rulebook}}` | `{ok:true}` (optionally `{doc:{…}}` as opening orders) |
+| `decide` | `{episode, observation, actions}` — every 5 s of game time | `{"actions":[…], "why":"…"}` (or a bare array) |
+| `end` | `{episode, report}` — the match report | `{ok:true, lesson:"…"}` |
 
-and expects `{"actions":[ … ]}` (or a bare array) back. In the Arena, type a name and the URL and press **Add**; the agent then joins tournaments like any bot.
+Every body also has `game:"iron-and-ash"`, `protocol:2` and `agent` (its name in the Arena). A body without `kind` is a protocol-1 decide. In the Arena, type a name and the URL and press **Add**; the agent then joins tournaments and leagues like any bot.
 
-`tools/agent-proxy.mjs` is a reference endpoint that asks Claude for the actions:
+`IronAsh.rulebook()` shows the briefing (generated from the registries the Wiki reads, so it is always current); `IronAsh.report()` shows the last match report.
+
+### The reference endpoint, with memory
+`tools/agent-proxy.mjs` asks Claude for the orders and gives it a memory:
 
 ```bash
 npm install @anthropic-ai/sdk
@@ -77,14 +84,46 @@ npm install @anthropic-ai/sdk
 ```bash
 ANTHROPIC_API_KEY=… node tools/agent-proxy.mjs
 ```
-Then add `http://localhost:8787/decide` in the Arena. To field several models against each other, run one endpoint per model (different ports, or other providers' SDKs behind the same request/response shape) and add each as its own agent.
+```bash
+IRONASH_MOCK=1 node tools/agent-proxy.mjs
+```
+(the last one runs with no model, no key and no cost — a crude rule plays and "reflects", so you can check the plumbing).
 
-From a script or another page you can also drive the game directly: `IronAsh.run({agent:{name:'mine', doc:{…}, decide: async obs => [ …actions… ]}})`.
+Add `http://localhost:8787/claude-a` in the Arena. The path is the agent's name and its memory folder; `?model=claude-haiku-5-5` picks a model per agent. Two agents with separate memories on one endpoint: `…/claude-a` and `…/claude-b`.
 
-## Teaching and improving agents
-- **Doctrine search** (works today): doctrines are five numbers and a switch. Run `IronAsh.tournament` over a grid or an evolutionary loop of doctrines on 5–10 seeds and keep the best — a few hundred episodes is enough to find strong standing orders per biome.
-- **Prompt iteration for models**: keep the endpoint's system prompt in a file, log `(observation, actions, score delta)` per decision in the proxy, and tune against a fixed seed set. Because seeds are reproducible, a change in mean score is a change in play, not luck.
-- **Later**: per-biome doctrines, direct control of vehicles, and a headless Node runner so thousands of episodes can run without a browser (needs the simulation freed from the DOM — see ROADMAP).
+| Memory layer | Where | What it does |
+|---|---|---|
+| Short-term | in the endpoint, per episode | the last 8 decisions (time, score, orders, reason) go into each prompt, so it does not repeat a move that just failed |
+| Playbook | `agent-memory/<name>/playbook.md` | lessons the model wrote itself; put in front of it at the start of every game |
+| Skills | `agent-memory/<name>/skills.json` | situation → orders, with tries and average gain |
+| Journal | `agent-memory/<name>/journal.jsonl` | one line per game: scores, calls, tokens (never shown to the model) |
+
+After a **practice** game the endpoint makes one extra call: the model reads its match report, its orders during the game and its current playbook, and rewrites the playbook and skills (capped at 4 000 characters). **Test** games read the memory but never write it. Settings: `IRONASH_MODEL`, `IRONASH_MAX_CALLS` (decisions per episode, default 300), `IRONASH_PLAYBOOK_CHARS`, `IRONASH_MEMORY` (folder). The rulebook and playbook are sent as a cached prompt prefix, so each decision pays full price only for the observation.
+
+To field models from other providers, write an endpoint with the same three `kind`s.
+
+From a script or another page you can also drive the game directly: `IronAsh.run({agent:{name:'mine', doc:{…}, start: info => …, decide: async obs => [ …actions… ], end: report => 'lesson'}})`.
+
+## The learning league
+**Arena → RUN LEAGUE**, or
+
+```js
+await IronAsh.league({agents:['student','quartermaster', IronAsh.endpointAgent('Claude','http://localhost:8787/claude-a')],
+                      rounds:5, practice:[1,2], test:[1001,1002], legs:1})
+```
+
+Each round, every **learning** agent (Student and endpoint agents) plays the practice seeds and may update its memory from the match reports; then every agent plays the test seeds, which nobody practises on. The table shows the mean **test** score per round — the learning curve. It rises only if what the agent learned carries over to worlds it has not seen; a curve that rises on practice seeds but not on test seeds is memorising maps. Non-learning bots skip practice and give a flat reference line. Ranking: the latest round, plus an **Elo** rating computed from every head-to-head on a test seed (higher score wins). Results are kept in the browser (`ironash.league.v1`).
+
+**Student** is a built-in bot that learns without a model: each practice round it varies one or two of its standing orders and keeps the change only if it beat its best on the same practice seeds. Its lessons ("tried standoff 0→150 → 4310 vs 4226, kept") appear under the table. `IronAsh.student()` shows its memory, `IronAsh.forget()` erases it.
+
+**Fairness**: give every competitor the same seeds, rounds, `maxDecisions` (decisions per episode) and memory cap. Episodes are exact: the same agent with the same memory on the same seed plays the same game, so a change in score is a change in play.
+
+**Cost of a model in the league** (rough): one 1-leg game is ~170 decisions at a 5-second period; with the briefing cached, expect a few dollars per game on Claude Opus 5.5 and cents on Claude Haiku 5.5, plus one reflection call per practice game. The endpoint prints tokens per game; `IRONASH_MAX_CALLS` caps the spend.
+
+## Next steps for agents
+- Both duel trains commanded by agents (the rival still follows one fixed fire plan).
+- Ask the agent only when something happens (ambush sighted, wagon below half, site reached) instead of on a timer — far fewer calls.
+- A headless Node runner, so thousands of episodes can run without a browser (needs the simulation freed from the DOM — see ROADMAP).
 
 ## Duels — train against train
 **Title → ARENA → FIGHT A MIRROR**, or paste a **train card**.

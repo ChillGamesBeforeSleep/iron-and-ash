@@ -55,6 +55,9 @@ Repo layout, build, dev server, docs, bug triage, git.
   - Liquids v2: pooled cell liquids (water, oil, fuel, acid, lava) flowing in tunnels and craters — this is what makes digging dangerous and fun.
 - **Sound pass** per material (metal ring, wood crack, glass).
 
+### Done in v3.44
+Learning league: rulebook, event feed and match reports for agents; practice/test rounds with learning curves and Elo; the Student bot; a memory endpoint for language models; exact seeded episodes.
+
 ### Done in v3.43
 Tracked driller, rocket/sniper raiders and ambushes, vehicles assembled from blocks, agent API + Arena + built-in bots, duels and train cards. See CHANGELOG.
 
